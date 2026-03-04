@@ -25,7 +25,16 @@ export default async function handler(req, res) {
       }
     });
 
-    const dados = payment.body.point_of_interaction.transaction_data;
+    const dados = payment?.body?.point_of_interaction?.transaction_data;
+
+if (!dados) {
+  console.error("Resposta inválida do Mercado Pago:", payment);
+
+  return res.status(500).json({
+    error: "Erro ao gerar QR Code",
+    detalhe: "Resposta inválida do Mercado Pago"
+  });
+}
 
     res.status(200).json({
       qr_code: dados.qr_code,
@@ -42,5 +51,6 @@ export default async function handler(req, res) {
     });
   }
 }
+
 
 
