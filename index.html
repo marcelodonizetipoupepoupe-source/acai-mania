@@ -1232,40 +1232,23 @@ async function gerarPixReal(valorTotal){
   try{
 
     const response = await fetch("/api/criar-pix", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        total: valorTotal
-      })
-    });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    total: 10
+  })
+})
+.then(res => res.json())
+.then(data => {
+  console.log("QR:", data);
 
-    const data = await response.json();
-
-    console.log("RESPOSTA PIX:", data); // 🔥 DEBUG
-
-    if(data.qr_code_base64){
-
-      document.getElementById("qrPix").src =
-        "data:image/png;base64," + data.qr_code_base64;
-
-      document.getElementById("codigoPix").value =
-        data.qr_code;
-
-    } else {
-
-      alert("Erro ao gerar PIX");
-      console.error(data);
-    }
-
-  }catch(error){
-
-    console.error("ERRO FETCH:", error);
-    alert("Erro ao conectar com servidor");
-
-  }
-}
+  // mostrar QR code aqui
+})
+.catch(err => {
+  console.error("Erro:", err);
+});
 /* =========================
    CONTROLE BOTÕES PAGAMENTO
 ========================= */
