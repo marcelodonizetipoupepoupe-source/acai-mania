@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Açaí Delivery Mobile</title>  
+<style>
+body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; color:#fff;}
+.overlay {
+  height:100vh;
+  width:100%;
+  background-size:cover; 
+  background-position:center; 
+  background-repeat:no-repeat;
+  position:fixed;
+  top:0;
+  left:0;
+  overflow-y:auto;
+}
+.sugestoesGrid{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-bottom:20px;
+}
+
+.sugestaoItem{
+  background:transparent; /* 🔥 remove fundo roxo */
+  border:2px solid #ffffff; /* borda branca */
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.sugestaoItem:hover{
+  background:#7b1fa2; /* roxo só quando passar o mouse */
+  transform:scale(1.03);
+}
+.card{
+  background:rgba(0,0,0,0.85);
+  max-width:480px;
+  margin:20px auto;
+  padding:20px;
+  border-radius:15px;
+  position:relative; /* 🔥 IMPORTANTE */
+}
+#btnMenuOpcoes{
+  position:absolute;
+  top:15px;
+  left:15px;
+  background:#7b1fa2;
+  padding:10px 14px;
+  border-radius:8px;
+  font-size:18px;
+}
+#telaMenu .card{
+  padding-top:60px;
+}
+h2,h3{color:#fff; text-align:center;}
+input,button{padding:8px; margin:5px 0; border-radius:8px; border:none; font-size:16px;}
+button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
+.hidden{display:none;}
+.produto{border:1px solid #fff; padding:10px; margin:5px; border-radius:10px; display:flex; flex-direction:column; align-items:center;}
+.produto img{width:80px; height:80px; object-fit:cover; border-radius:8px; margin-bottom:5px;}
+.produto h3{font-size:16px; margin:3px 0; text-align:center;}
+.produto p{font-size:12px; margin:2px 0; text-align:center;}
+.qtdProd, .qtdAcc{display:flex; justify-content:center; align-items:center; margin:5px 0;}
+.qtdProd button, .qtdAcc button{width:30px; height:30px; margin:0 5px;}
+.acompanhamentos{
+  display:none;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  margin-top:10px;
+  gap:8px;
+}
+
+.acompanhamentoItem{
+  width:18%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-size:11px;
+  text-align:center;
+}
+
+.acompanhamentoItem img{
+  width:35px;
+  height:35px;
+  object-fit:cover;
+  border-radius:6px;
+  margin-bottom:3px;
+}
+.finalizarCentral{position:fixed; bottom:10%; left:50%; transform:translateX(-50%); background:#7b1fa2; color:#fff; font-size:18px; padding:15px; border-radius:10px; cursor:pointer; display:none;}
+.qrcode{display:block; margin:10px auto; max-width:200px;}
+.mensagemAcomp{color:#ff5722; text-align:center; margin:5px; display:none; font-weight:bold;}
+.carrinhoIcon{position:fixed; top:10px; right:10px; background:#ff5722; color:#fff; border-radius:50%; padding:10px; cursor:pointer; font-size:20px; z-index:1000;}
+.carrinhoResumo{
+  position:fixed;
+  bottom:12px;
+  right:12px;
+  background:#7b1fa2;
+  color:#fff;
+  padding:6px 12px;
+  border-radius:25px;
+  box-shadow:0px 4px 8px rgba(0,0,0,0.4);
+  display:none;
+  z-index:3000;
+  font-size:12px;
+  font-weight:bold;
+  min-width:120px;
+  text-align:center;
+  cursor:grab;
+  user-select:none;
+}
+.carrinhoResumo h3{display:none;}
+.drawerInput {
+  display:flex;
+  align-items:center;
+  background:#222;
+  border-radius:10px;
+  padding:6px 10px;
+  margin:6px 0;
+  border:1px solid #333;
+}
+
+.drawerInput span {
+  font-size:14px;
+  margin-right:6px;
+  opacity:0.8;
+}
+
+.drawerInput input {
+  flex:1;
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:13px;
+  outline:none;
+}
+.spinner {
+  margin:20px auto;
+  width:50px;
+  height:50px;
+  border:6px solid #ffffff30;
+  border-top:6px solid #7b1fa2;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform:rotate(0deg); }
+  100% { transform:rotate(360deg); }
+}
+</style>
+</head>
+<body>
+
+<!-- TELA CEP -->
+<div class="overlay" id="telaCep" style="background-image: url('imagens/capa.jpg');">
+  <div class="card">
+
+    <!-- MENSAGEM INICIAL -->
+    <h2 id="mensagemPrincipal">
+      Bem vindo à Açai Mania do Barrigas Burguer,<br><br>
+      Vamos verificar se temos uma loja próxima a você.<br><br>
+      Me informe seu CEP.
+    </h2>
+
+    <!-- CEP -->
+    <div id="cepDiv">
+     <input id="cep" placeholder="Digite seu CEP">
+      <button id="btnCep">Continuar</button>
+    </div>
+
+    <!-- NUMERO CASA -->
+    <div id="numeroDiv" class="hidden">
+      <h3>Qual número da casa?</h3>
+      <input id="numero" placeholder="Digite o número">
+      <button id="btnNumero">Continuar</button>
+    </div>
+
+    <!-- COMPLEMENTO -->
+    <div id="complementoDiv" class="hidden">
+      <h3>Complemento</h3>
+      <input id="complemento" placeholder="Casa, Apartamento, Referencia.">
+      <button id="btnComplemento">Continuar</button>
+    </div>
+
+    <!-- MENSAGEM CONFIRMAÇÃO -->
+    <div id="confirmacaoDiv" class="hidden">
+      <h3 style="text-align:center;">
+        Ótimo, Temos uma loja na sua região,<br>
+        Prazo de entrega de 30 a 40 minutos.<br><br>
+        Vamos fazer um pedido.
+      </h3>
+      <button id="btnConfirmacao">Continuar</button>
+    </div>
+
+    <!-- RESTANTE FLUXO (nome, cpf, telefone) continua igual -->
+    <div id="nomeDiv" class="hidden">
+      <p style="text-align:center; font-weight:bold;">Me Informe seu nome ?</p>
+      <input id="nome" placeholder="Digite seu nome">
+      <button id="btnNome">Continuar</button>
+    </div>
+
+    <div id="cpfDiv" class="hidden">
+      <p style="text-align:center; font-weight:bold;">Me Confirma o CPF ? (apenas para nota fiscal)</p>
+      <input id="cpf" placeholder="Digite seu CPF">
+      <button id="btnCpf">Continuar</button>
+    </div>
+
+    <div id="telefoneDiv" class="hidden">
+      <p style="text-align:center; font-weight:bold;">Telefone para contato?</p>
+      <input id="telefone" placeholder="Digite seu telefone">
+      <button id="btnTelefone">Continuar</button>
+    </div>
+
+    </div>
+</div> <!-- FECHA telaCep -->
+
+<!-- TELA MENU INICIAL -->
+<div class="overlay hidden" id="telaMenu" style="background-image: url('imagens/capa.jpg');">
+  <div class="card" style="position:relative;">
+
+<div class="sugestoesGrid">
+
+<div class="sugestaoItem" onclick="abrirCategoria('copos')">
+  Copos
+</div>
+
+<div class="sugestaoItem" onclick="abrirCategoria('combos')">
+  Combos
+</div>
+
+<div class="sugestaoItem" onclick="abrirCategoria('barcas')">
+  Barcas
+</div>
+
+</div>
+  <button id="btnMenuOpcoes">☰ Menu</button>
+
+<div id="menuLateral" style="
+  display:none;
+  flex-direction:column;
+  width:100%;
+  margin-top:10px;
+">
+    <button id="btnIrCardapio">Cardápio</button>
+    <button id="btnQuemSomos">Quem Somos</button>
+    <button id="btnAjuda">Ajuda</button>
+    <button id="btnChat">Chat</button>
+  </div>
+
+  <div id="areaMensagem" style="margin-top:80px;"></div>
+
+    <div style="margin-top:40px; font-size:12px; opacity:0.7; text-align:center;">
+    Açai Mania do Barrigas Burguer<br>
+    CNPJ: 35.970.999/0001-86<br>
+    Endereço Matriz: Rua Av Paulista, 1399 - Centro - SP
+  </div>
+
+  </div> <!-- fecha .card -->
+</div>   <!-- 🔥 fecha telaMenu corretamente -->
+
+<!-- CARDÁPIO -->
+<div class="overlay hidden" id="telaCardapio" style="background-image: url('imagens/capa.jpg');">
+  <div class="card">
+  <button id="btnVoltarMenu" style="margin-bottom:10px;">⬅ Voltar ao Menu</button>
+  <h2>Cardápio</h2>
+    <div id="produtos" style="display:flex; flex-wrap:wrap; justify-content:center;"></div>
+    <p class="mensagemAcomp" id="msgAcomp">É obrigatório escolher pelo menos 2 acompanhamentos!</p>
+  </div>
+</div>
+
+<!-- FINALIZAR PEDIDO -->
+<div class="finalizarCentral" id="finalizarCentral">Finalizar Pedido</div>
+
+<!-- PAGAMENTO -->
+<div class="overlay hidden" id="telaPagamento" style="background-image: url('imagens/capa.jpg');">
+  <div class="card">
+    <h2>Resumo do Pedido</h2>
+    <div id="resumo"></div>
+    <img id="qrPix" width="250">
+<textarea id="codigoPix" readonly></textarea>
+<button id="btnCopiar">Copiar código PIX</button>
+    <button id="btnVoltar">Voltar ao Menu Anterior</button>
+    <button id="btnPago">Já Efetuei o Pagamento</button>
+  </div>
+</div>
+
+<!-- Carrinho de Compras -->
+<!-- Removido o carrinho no canto direito -->
+<!-- <div class="carrinhoIcon" id="carrinhoIcon">🛒</div> -->
+
+<!-- Resumo Carrinho -->
+
+<!-- TELA CARRINHO COMPLETO -->
+<div class="overlay hidden" id="telaCarrinho" style="background-image: url('imagens/capa.jpg');">
+  <div class="card">
+    <h2>Seu Carrinho</h2>
+    <div id="listaCarrinho"></div>
+    <h3 id="totalCarrinho"></h3>
+    <button onclick="fecharTelaCarrinho()">Voltar</button>
+    <button id="btnFinalizarEditado">Finalizar Pedido</button>
+  </div>
+</div>
+
+<div class="carrinhoResumo" id="carrinhoResumo">
+  <div id="resumoCarrinhoMini"></div>
+
+  <div style="margin-top:5px; display:flex; gap:5px; justify-content:center;">
+    <button id="btnEditarMini" style="font-size:10px; padding:3px 6px;">Editar</button>
+    <button id="btnFinalizarCarrinho" style="font-size:10px; padding:3px 6px;">Finalizar</button>
+  </div>
+</div>
+<!-- DRAWER FINALIZAÇÃO -->
+<div id="drawerFinalizacao" style="
+  position:fixed;
+  bottom:-100%;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
+  max-width:420px;
+  background:#1a1a1a;
+  padding:18px;
+  border-radius:20px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.7);
+  transition:0.4s;
+  z-index:2000;
+">
+
+  <h3 style="text-align:center;">Confirmar Entrega</h3>
+
+<div id="enderecoContainer">
+
+  <p style="font-size:13px; opacity:0.8;">Endereço:</p>
+
+  <p id="enderecoConfirmacao"
+     style="font-size:14px; margin-bottom:8px;"></p>
+
+  <button id="btnEditarEndereco"
+          style="background:#444; font-size:12px; padding:6px 10px;">
+    Editar Endereço
+  </button>
+
+  <div id="editarEnderecoDiv" class="hidden" style="margin-top:8px;">
+    <input id="inputEditarEndereco"
+           placeholder="Digite o novo endereço"
+           style="width:100%; margin-bottom:5px;">
+    <button id="btnSalvarEndereco"
+            style="background:#7b1fa2; width:100%;">
+      Salvar Alteração
+    </button>
+  </div>
+
+</div>
+<div class="drawerInput">
+  <span>👤</span>
+  <input id="drawerNome" placeholder="Nome">
+</div>
+
+<div class="drawerInput">
+  <span>🪪</span>
+  <input id="drawerCpf" placeholder="CPF (opcional)">
+</div>
+
+<div class="drawerInput">
+  <span>📞</span>
+  <input id="drawerTelefone" placeholder="Telefone">
+</div>
+
+<div class="drawerInput">
+  <span>🏠</span>
+  <input id="drawerNumero" placeholder="Número da casa">
+</div>
+
+<div class="drawerInput">
+  <span>📍</span>
+  <input id="drawerComplemento" placeholder="Complemento (opcional)">
+</div>
+
+<div style="display:flex; gap:10px; margin-top:10px;">
+  
+  <button id="btnVoltarDrawer" style="
+    flex:1;
+    background:#444;
+  ">
+    Voltar
+  </button>
+
+  <button id="btnConfirmarDrawer" style="
+    flex:1;
+    background:#ff5722;
+  ">
+    Finalizar
+  </button>
+
+</div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+let endereco="", cliente={}, pedido=[], total=0;
+let carrinho = []; let numeroPedidoGlobal = ""; // Novo carrinho
+function salvarTelaAtual(nomeTela){
+localStorage.setItem("telaAtual", nomeTela);
+}
+/* =========================
+   BANCO DE PEDIDOS
+========================= */
+
+const PedidoDB = {
+  salvar(pedido){
+    let pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
+    pedidos.push(pedido);
+    localStorage.setItem("pedidos", JSON.stringify(pedidos));
+  },
+
+  gerarNumero(){
+    const ultimo = localStorage.getItem("ultimoPedido");
+    let novo = ultimo ? parseInt(ultimo)+1 : 1;
+    localStorage.setItem("ultimoPedido", novo);
+    return String(novo).padStart(5,"0");
+  }
+};
+/* =========================
+   API INTERNA DE PEDIDOS
+========================= */
+
+const PedidoAPI = {
+  gerarNumeroPedido() {
+    const ultimo = localStorage.getItem("ultimoPedido");
+    let novoNumero = ultimo ? parseInt(ultimo) + 1 : 1;
+    localStorage.setItem("ultimoPedido", novoNumero);
+    return String(novoNumero).padStart(5, "0");
+  },
+
+  gerarDataHora() {
+    const agora = new Date();
+    return {
+      data: agora.toLocaleDateString("pt-BR"),
+      hora: agora.toLocaleTimeString("pt-BR")
+    };
+  }
+};
+
+// CEP
+// CEP
+document.getElementById("btnCep").addEventListener("click", async function(){
+
+  const cep = document.getElementById("cep").value.replace(/\D/g,"");
+
+  if(cep.length !== 8){
+    alert("Digite um CEP válido com 8 números");
+    return;
+  }
+
+  try{
+
+    const resposta = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
+
+    if(!resposta.ok){
+      throw new Error("Erro HTTP");
+    }
+
+    const data = await resposta.json();
+
+    endereco = `${data.street}, ${data.neighborhood} - ${data.city}`;
+cliente.endereco = endereco;
+cliente.cep = cep;
+    // 🔥 ESCONDE CEP
+    document.getElementById("cepDiv").classList.add("hidden");
+    document.getElementById("mensagemPrincipal").classList.add("hidden");
+
+    // 🔥 MOSTRA CONFIRMAÇÃO COM SPINNER
+    const confirmacao = document.getElementById("confirmacaoDiv");
+    confirmacao.classList.remove("hidden");
+
+    confirmacao.innerHTML = `
+      <h3 style="text-align:center;">
+        Ótimo, Temos uma loja na sua região,<br>
+        Prazo de entrega de 30 a 40 minutos.<br><br>
+        Vamos fazer um pedido.
+      </h3>
+      <div class="spinner"></div>
+    `;
+
+    // 🔥 ESPERA 5 SEGUNDOS
+    setTimeout(()=>{
+
+      document.getElementById("telaCep").classList.add("hidden");
+      document.getElementById("telaMenu").classList.remove("hidden");
+
+salvarTelaAtual("telaMenu");
+
+    }, 5000);
+
+  }catch(erro){
+    alert("Erro ao consultar CEP.");
+  }
+
+});
+// NÚMERO
+document.getElementById("btnNumero").addEventListener("click", function(){
+
+  const numero = document.getElementById("numero").value.trim();
+
+  if(!numero){
+    alert("Digite o número da casa");
+    return;
+  }
+
+  cliente.numero = numero;
+
+  document.getElementById("numeroDiv").classList.add("hidden");
+  document.getElementById("complementoDiv").classList.remove("hidden");
+});
+
+// COMPLEMENTO
+document.getElementById("btnComplemento").addEventListener("click", function(){
+
+  const complemento = document.getElementById("complemento").value.trim();
+
+  cliente.complemento = complemento ? complemento : "Sem complemento";
+
+  document.getElementById("complementoDiv").classList.add("hidden");
+  document.getElementById("confirmacaoDiv").classList.remove("hidden");
+});
+
+// CONFIRMAÇÃO
+document.getElementById("btnConfirmacao").addEventListener("click", function(){
+
+  document.getElementById("confirmacaoDiv").classList.add("hidden");
+  document.getElementById("nomeDiv").classList.remove("hidden");
+
+});
+// Nome
+document.getElementById("btnNome").addEventListener("click", function(){
+  if(!document.getElementById("nome").value.trim()){ 
+    alert("Digite nome"); 
+    return; 
+  }
+  document.getElementById("nomeDiv").classList.add("hidden");
+  document.getElementById("cpfDiv").classList.remove("hidden");
+});
+
+// CPF
+document.getElementById("btnCpf").addEventListener("click", function(){
+  const cpf = document.getElementById("cpf").value.trim();
+  if(cpf.length < 11){ 
+    alert("Digite CPF válido"); 
+    return; 
+  }
+  document.getElementById("cpfDiv").classList.add("hidden");
+  document.getElementById("telefoneDiv").classList.remove("hidden");
+});
+// MÁSCARA TELEFONE PROFISSIONAL
+document.getElementById("telefone").addEventListener("input", function(e){
+
+  let v = e.target.value.replace(/\D/g,"");
+
+  if(v.length > 11) v = v.slice(0,11);
+
+  if(v.length > 10){
+    v = v.replace(/^(\d{2})(\d{5})(\d{4}).*/, "($1) $2-$3");
+  } 
+  else if(v.length > 6){
+    v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+  } 
+  else if(v.length > 2){
+    v = v.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+  }
+
+  e.target.value = v;
+});
+// TELEFONE
+// TELEFONE
+document.getElementById("btnTelefone").addEventListener("click", function(){
+
+  const telefoneInput = document.getElementById("telefone").value.trim();
+  const cpfInput = document.getElementById("cpf").value.trim();
+  const nomeInput = document.getElementById("nome").value.trim();
+  const numeroCasaInput = document.getElementById("numero").value.trim();
+
+  const apenasNumeros = telefoneInput.replace(/\D/g,"");
+
+  if(apenasNumeros.length < 10){
+    alert("Digite um telefone válido");
+    return;
+  }
+
+  cliente = {
+    nome: String(nomeInput),
+    cpf: String(cpfInput),
+    telefone: String(telefoneInput),
+    endereco: String(endereco),
+    numero: String(numeroCasaInput)
+  };
+
+  document.getElementById("telefoneDiv").classList.add("hidden");
+  document.getElementById("telaCep").classList.add("hidden");
+  document.getElementById("telaMenu").classList.remove("hidden");
+
+salvarTelaAtual("telaMenu");
+
+});
+  
+// ABRIR / FECHAR MENU
+document.getElementById("btnMenuOpcoes").addEventListener("click", function(){
+
+  const menu = document.getElementById("menuLateral");
+  const area = document.getElementById("areaMensagem");
+
+  if(menu.style.display === "flex"){
+
+    // 🔥 FECHA MENU
+    menu.style.display = "none";
+    area.innerHTML = "";
+
+  } else {
+
+    // 🔥 ABRE MENU E LIMPA QUALQUER CONTEÚDO
+    menu.style.display = "flex";
+    area.innerHTML = "";
+
+  }
+
+});
+function fecharMenu(){
+
+  document.getElementById("menuLateral").style.display = "none";
+
+  // 🔥 LIMPA A ÁREA DE CONTEÚDO
+  document.getElementById("areaMensagem").innerHTML = "";
+
+}
+// BOTÃO VOLTAR AO MENU
+document.getElementById("btnVoltarMenu").addEventListener("click", function(){
+
+  document.getElementById("telaCardapio").classList.add("hidden");
+  document.getElementById("telaMenu").classList.remove("hidden");
+
+  if(carrinho.length > 0){
+    
+  }
+
+});
+// CARDÁPIO
+// CARDÁPIO
+document.getElementById("btnIrCardapio").addEventListener("click", function(){
+
+  fecharMenu();
+
+  document.getElementById("telaMenu").classList.add("hidden");
+  document.getElementById("telaCardapio").classList.remove("hidden");
+
+salvarTelaAtual("telaCardapio");
+
+  const container = document.getElementById("produtos");
+  container.innerHTML = ""; // 🔥 limpa sempre
+
+  carregarProdutos(); // 🔥 carrega todos os produtos sempre
+
+  if(!document.getElementById("telaCarrinho").classList.contains("hidden")){
+  document.getElementById("carrinhoResumo").style.display = "none";
+} else {
+  document.getElementById("carrinhoResumo").style.display = "block";
+}
+
+});
+
+// QUEM SOMOS
+document.getElementById("btnQuemSomos").addEventListener("click", function(){
+
+  fecharMenu(); // 👈 adiciona
+
+  document.getElementById("areaMensagem").innerHTML = `
+  <h3>Açai Mania do Barrigas Burguer</h3>
+  <p style="text-align:left; font-size:14px; line-height:1.6;">
+  Fundada em setembro de 2010, pelo empreendedor Henrique Valmont, a Açai Mania do Barrigas Burguer nasceu com a missão de unir qualidade, sabor e inovação em um único conceito gastronômico. Desde o início, a marca foi criada com o propósito de oferecer experiências marcantes, combinando o melhor do açaí cremoso e nutritivo com hambúrgueres artesanais preparados com ingredientes selecionados.
+
+Com visão estratégica e espírito empreendedor, Henrique Valmont expandiu a marca para além das fronteiras, estabelecendo a loja matriz nos Estados Unidos (EUA), consolidando o padrão internacional de qualidade da empresa. No Brasil, a responsabilidade administrativa e de expansão de capital está concentrada em São Paulo, fortalecendo nossa presença nacional.
+
+Hoje, contamos com franquias em todo o Brasil, levando nosso sabor e nossa identidade para diferentes regiões do país — e em breve haverá uma unidade ainda mais próxima de você.
+
+A Açai Mania do Barrigas Burguer é mais que uma marca: é um conceito que une tradição, inovação e excelência em atendimento.
+
+Açai Mania do Barrigas Burguer — Uma história de sabor que começou em 2010 e continua conquistando o Brasil e o mundo.
+  </p>
+  `;
+});
+
+// AJUDA
+document.getElementById("btnAjuda").addEventListener("click", function(){
+
+  fecharMenu(); // 👈 adiciona
+
+  document.getElementById("areaMensagem").innerHTML = `
+    <h3>Ajuda</h3>
+    <button onclick="alert('Estamos verificando seu pedido, Entraremos em contato no numero cadastrado.')">Não recebi meu pedido</button>
+    <button onclick="alert('Seu pedido está em rota de entrega. Aguarde.')">Pedido em atraso</button>
+    <button onclick="alert('Solicitação de reembolso Aprovada, Pedimos Desculpa o transtorno, Seu valor Será Estornado em Até 7 dias uteis.')">Reembolso</button>
+    <button onclick="alert('Seu Pedido Será cancelado e o valor pago é estornado automaticamente dentro de 7 dias uteis.')">Cancelar pedido</button>
+  `;
+});
+
+// CHAT
+document.getElementById("btnChat").addEventListener("click", function(){
+
+  fecharMenu(); // 👈 adiciona
+
+  document.getElementById("areaMensagem").innerHTML = `
+    <h3>Chat</h3>
+    <button onclick="alert('Desculpe não temos atendentes disponiveis no momento. tente mais tarde.')">Falar com Atendente</button>
+  `;
+});
+// PRODUTOS E ACESSÓRIOS
+const produtosDados = [
+  {id:1,nome:"Açaí Pequeno 300ml",desc:"Açaí delicioso com qualquer acompanhamento",valor:10,img:"imagens/acai1.jpg"},
+  {id:2,nome:"Açaí Médio 500ml",desc:"Açaí delicioso com qualquer acompanhamento",valor:18,img:"imagens/acai2.jpg"},
+  {id:3,nome:"Açaí Grande 700ml",desc:"Açaí delicioso com qualquer acompanhamento",valor:25,img:"imagens/acai3.jpg"},
+  {id:4,nome:"Combo Kids",desc:"2 Açaí pequenos com qualquer acompanhamento",valor:18,img:"imagens/combo1.jpg"},
+  {id:5,nome:"Combo Casal",desc:"2 Açaí médios com qualquer acompanhamento",valor:30,img:"imagens/combo2.jpg"},
+  {id:6,nome:"Combo Família 1",desc:"2 pequenos + 2 médios com qualquer acompanhamento",valor:40,img:"imagens/combo3.jpg"},
+  {id:7,nome:"Combo Família 2",desc:"4 médios com qualquer acompanhamento",valor:65,img:"imagens/combo4.jpg"},
+  {id:8,nome:"Combo Família 3",desc:"4 grandes com qualquer acompanhamento",valor:85,img:"imagens/combo5.jpg"},
+  {id:9,nome:"Barca 1kg",desc:"Completa com todos acompanhamentos",valor:60,img:"imagens/barca.jpg"}
+];
+
+const acompanhamentos = ["Nutella","Leite Ninho","Granulado","Granulado Colorido","Leite Condensado","Paçoca","Sucrilhos","Chocoball","MMS","Kitkat"];
+const frutas = ["Morango","Kiwi","Banana","Manga","Abacaxi"];
+
+function carregarProdutos(){
+  const container = document.getElementById("produtos");
+  produtosDados.forEach(p=>{
+    const div = document.createElement("div");
+    div.className = "produto";
+div.id = "produto"+p.id;
+    div.innerHTML = `
+      <img src="${p.img}" alt="${p.nome}">
+      <h3>${p.nome}</h3>
+      <p>${p.desc}</p>
+      <p>R$ ${p.valor.toFixed(2)}</p>
+      <div class="qtdProd">
+        <button onclick="alterarQtd(${p.id},-1); rolarParaProduto(${p.id})">-</button>
+        <span id="qtd${p.id}">0</span>
+        <button onclick="alterarQtd(${p.id},1); rolarParaProduto(${p.id})">+</button>
+      </div>
+      <button style="font-size:13px; padding:6px 8px;" onclick="abrirAcompanhamentos(${p.id})">
+  Acompanhamentos
+</button>
+      <div class="acompanhamentos" id="acc${p.id}"></div>
+      <button onclick="adicionarCarrinho(${p.id})">Adicionar ao Carrinho</button>
+    `;
+    container.appendChild(div);
+
+    const accDiv = document.getElementById("acc"+p.id);
+    [...acompanhamentos,...frutas].forEach(a=>{
+      const aDiv = document.createElement("div");
+      aDiv.className="acompanhamentoItem";
+      aDiv.innerHTML = `<img src="imagens/${a.toLowerCase()}.jpg" alt="${a}"><span>${a}</span>
+                        <div class="qtdAcc">
+                          <button onclick="alterarAcc('${a}',${p.id},-1)">-</button>
+                          <span id="accQtd${p.id}_${a}">0</span>
+                          <button onclick="alterarAcc('${a}',${p.id},1)">+</button>
+                        </div>`;
+      accDiv.appendChild(aDiv);
+    });
+  });
+}
+
+function abrirCategoria(tipo){
+
+  document.getElementById("telaMenu").classList.add("hidden");
+  document.getElementById("telaCardapio").classList.remove("hidden");
+
+  document.getElementById("carrinhoResumo").style.display = "block";
+
+  const container = document.getElementById("produtos");
+  container.innerHTML = "";
+
+  let filtrados = [];
+
+  if(tipo === "copos"){
+    filtrados = produtosDados.filter(p => 
+      p.nome.includes("Pequeno") || 
+      p.nome.includes("Médio") || 
+      p.nome.includes("Grande")
+    );
+  }
+
+  if(tipo === "combos"){
+    filtrados = produtosDados.filter(p => 
+      p.nome.includes("Combo")
+    );
+  }
+
+  if(tipo === "barcas"){
+    filtrados = produtosDados.filter(p => 
+      p.nome.includes("Barca")
+    );
+  }
+
+  if(tipo === "bebidas"){
+    filtrados = produtosDados.filter(p => 
+      p.nome.includes("Refrigerante") || 
+      p.nome.includes("Suco") || 
+      p.nome.includes("Bolo")
+    );
+  }
+
+  carregarProdutosFiltrados(filtrados);
+}
+
+function carregarProdutosFiltrados(lista){
+
+  const container = document.getElementById("produtos");
+  container.innerHTML = "";
+
+  lista.forEach(p=>{
+    const div = document.createElement("div");
+    div.className = "produto";
+div.id = "produto"+p.id;
+
+    div.innerHTML = `
+      <img src="${p.img}" alt="${p.nome}">
+      <h3>${p.nome}</h3>
+      <p>${p.desc}</p>
+      <p>R$ ${p.valor.toFixed(2)}</p>
+
+      <div class="qtdProd">
+        <button onclick="alterarQtd(${p.id},-1); rolarParaProduto(${p.id})">-</button>
+        <span id="qtd${p.id}">0</span>
+        <button onclick="alterarQtd(${p.id},1); rolarParaProduto(${p.id})">+</button>
+      </div>
+
+      <button style="font-size:13px; padding:6px 8px;" onclick="abrirAcompanhamentos(${p.id})">
+  Acompanhamentos
+</button>
+
+      <div class="acompanhamentos" id="acc${p.id}"></div>
+
+      <button onclick="adicionarCarrinho(${p.id})">
+        Adicionar ao Carrinho
+      </button>
+    `;
+
+    container.appendChild(div);
+
+    const accDiv = document.getElementById("acc"+p.id);
+
+    [...acompanhamentos,...frutas].forEach(a=>{
+      const aDiv = document.createElement("div");
+      aDiv.className="acompanhamentoItem";
+      aDiv.innerHTML = `
+        <img src="imagens/${a.toLowerCase()}.jpg" alt="${a}">
+        <span>${a}</span>
+        <label>
+  <input type="checkbox" id="acc${p.id}_${a}" value="${a}">
+</label>
+      `;
+      accDiv.appendChild(aDiv);
+    });
+
+  });
+
+}
+function alterarQtd(id, delta){
+  const span = document.getElementById("qtd"+id);
+  let val = parseInt(span.innerText);
+  val = Math.max(0,val+delta);
+  span.innerText = val;
+}
+function rolarParaProduto(id){
+
+  const produto = document.getElementById("produto"+id);
+  const overlay = document.getElementById("telaCardapio");
+
+  if(produto && overlay){
+
+    const topPos = produto.offsetTop - 80; // margem para não colar no topo
+
+    overlay.scrollTo({
+      top: topPos,
+      behavior: "smooth"
+    });
+
+  }
+}
+function abrirAcompanhamentos(id){
+
+  const accDiv = document.getElementById("acc"+id);
+
+  if(accDiv.style.display === "none" || accDiv.style.display === "") {
+    accDiv.style.display = "flex";
+
+    // 🔥 ROLA SUAVEMENTE ATÉ O PRODUTO
+    const produtoCard = accDiv.closest(".produto");
+
+    if(produtoCard){
+      setTimeout(() => {
+        produtoCard.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }, 100);
+    }
+
+  } else {
+    accDiv.style.display = "none";
+  }
+}
+function adicionarCarrinho(id){
+
+  const qtd = parseInt(document.getElementById("qtd"+id).innerText);
+  const accSelecionados = [];
+
+  [...acompanhamentos, ...frutas].forEach(a => {
+    const checkbox = document.getElementById("acc"+id+"_"+a);
+    if(checkbox && checkbox.checked){
+      accSelecionados.push(a);
+      checkbox.checked = false; // 🔥 desmarca automaticamente
+    }
+  });
+
+  if (qtd > 0) {
+
+    const produto = produtosDados.find(p => p.id === id);
+
+carrinho.push({
+  produto: produto.nome,
+  valorUnitario: produto.valor,
+  quantidade: qtd,
+  acompanhamentos: accSelecionados,
+  imagem: produto.img   // 🔥 salva imagem
+});
+
+    // 🔥 FECHA OS ACOMPANHAMENTOS AUTOMATICAMENTE
+    document.getElementById("acc"+id).style.display = "none";
+
+    atualizarCarrinho();
+
+    // 🔥 RESETAR QUANTIDADE
+    document.getElementById("qtd"+id).innerText = "0";
+  }
+}
+
+function atualizarCarrinho(){
+
+  total = 0;
+  let quantidadeTotal = 0;
+
+  carrinho.forEach(item => {
+    total += item.valorUnitario * item.quantidade;
+    quantidadeTotal += item.quantidade;
+  });
+
+  const resumoMini = document.getElementById("resumoCarrinhoMini");
+
+  if(carrinho.length === 0){
+    document.getElementById("carrinhoResumo").style.display = "none";
+    return;
+  }
+
+  resumoMini.innerText =
+    `🛒 ${quantidadeTotal} • R$ ${total.toFixed(2)}`;
+
+  document.getElementById("carrinhoResumo").style.display = "block";
+}
+document.getElementById("carrinhoResumo").addEventListener("click", abrirTelaCarrinho);
+document.getElementById("btnEditarMini").addEventListener("click", function(e){
+  e.stopPropagation();
+  abrirTelaCarrinho();
+});
+
+function abrirTelaCarrinho(){
+
+  // 🔥 Esconde mini carrinho SEMPRE
+  document.getElementById("carrinhoResumo").style.display = "none";
+
+  const lista = document.getElementById("listaCarrinho");
+  lista.innerHTML = "";
+  total = 0;
+
+  carrinho.forEach((item, index)=>{
+
+    const valorItem = item.valorUnitario * item.quantidade;
+    total += valorItem;
+
+    const div = document.createElement("div");
+    div.style.border = "1px solid #fff";
+    div.style.padding = "8px";
+    div.style.marginBottom = "5px";
+    div.style.borderRadius = "8px";
+
+  div.innerHTML = `
+
+<div style="display:flex; gap:12px; align-items:flex-start;">
+
+  <!-- IMAGEM MAIOR -->
+  <img src="${item.imagem}" 
+       style="width:75px; height:75px; object-fit:cover; border-radius:10px;">
+
+  <div style="flex:1;">
+
+    <!-- NOME MAIOR -->
+    <p style="font-size:17px; font-weight:bold; margin:0 0 4px 0;">
+      ${item.produto}
+    </p>
+
+    <!-- DESCRIÇÃO -->
+    <p style="font-size:12px; opacity:0.8; margin:0 0 6px 0;">
+      ${item.acompanhamentos.length > 0 
+        ? "Acompanhamentos: " + item.acompanhamentos.join(", ") 
+        : "Sem acompanhamentos"}
+    </p>
+
+    <!-- VALOR -->
+    <p style="font-size:14px; font-weight:bold; margin:0 0 8px 0;">
+      R$ ${valorItem.toFixed(2)}
+    </p>
+
+    <!-- CONTROLES -->
+    <div style="display:flex; align-items:center; gap:12px;">
+
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button onclick="alterarQtdCarrinho(${index}, -1)" 
+          style="width:26px; height:26px; font-size:14px;">−</button>
+
+        <span style="min-width:18px; text-align:center;">
+          ${item.quantidade}
+        </span>
+
+        <button onclick="alterarQtdCarrinho(${index}, 1)" 
+          style="width:26px; height:26px; font-size:14px;">+</button>
+      </div>
+
+      <!-- 3 espaços visuais -->
+      <div style="width:18px;"></div>
+
+      <button onclick="removerItemCarrinho(${index})"
+        style="background:#7b1fa2; font-size:13px; padding:6px 10px;">
+        Excluir
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+`;
+
+    lista.appendChild(div);
+  });
+
+  document.getElementById("totalCarrinho").innerText =
+    "Total: R$ " + total.toFixed(2);
+
+  document.getElementById("telaCardapio").classList.add("hidden");
+  document.getElementById("telaCarrinho").classList.remove("hidden");
+
+salvarTelaAtual("telaCarrinho");
+
+}
+function removerItemCarrinho(index){
+  carrinho.splice(index,1);
+  atualizarCarrinho();
+  abrirTelaCarrinho();
+}
+function alterarQtdCarrinho(index, delta){
+
+  carrinho[index].quantidade += delta;
+
+  if(carrinho[index].quantidade <= 0){
+    carrinho.splice(index,1);
+  }
+
+  atualizarCarrinho();
+  abrirTelaCarrinho();
+}
+document.getElementById("btnFinalizarEditado").addEventListener("click", ()=>{
+
+  const drawer = document.getElementById("drawerFinalizacao");
+
+  // Puxa endereço da API
+  document.getElementById("enderecoConfirmacao").innerText =
+    cliente.endereco;
+// 🔥 Garante que está mostrando endereço atualizado
+document.getElementById("enderecoConfirmacao").innerText =
+  cliente.endereco || endereco || "Endereço não encontrado";
+  // Preenche dados já existentes
+  document.getElementById("drawerNome").value = cliente.nome || "";
+document.getElementById("drawerCpf").value = cliente.cpf || "";
+document.getElementById("drawerTelefone").value = cliente.telefone || "";
+document.getElementById("drawerNumero").value = cliente.numero || "";
+document.getElementById("drawerComplemento").value = cliente.complemento || "";
+
+  // Mostra drawer
+  drawer.style.bottom = "0";
+});
+// BOTÃO VOLTAR
+document.getElementById("btnVoltarDrawer").addEventListener("click", function(){
+  document.getElementById("drawerFinalizacao").style.bottom = "-100%";
+});
+
+// BOTÃO CONFIRMAR
+document.getElementById("btnConfirmarDrawer").addEventListener("click", function(){
+
+  const nome = document.getElementById("drawerNome").value.trim();
+  const cpf = document.getElementById("drawerCpf").value.trim();
+  const telefone = document.getElementById("drawerTelefone").value.trim();
+  const numero = document.getElementById("drawerNumero").value.trim();
+  const complemento = document.getElementById("drawerComplemento").value.trim();
+
+  if(!nome || !numero || !telefone){
+    alert("Preencha Nome, Telefone e Número da casa");
+    return;
+  }
+
+  cliente.nome = nome;
+  cliente.cpf = cpf;
+  cliente.telefone = telefone;
+  cliente.numero = numero;
+  cliente.complemento = complemento || "Sem complemento";
+
+  // 🔥 FECHA DRAWER
+  document.getElementById("drawerFinalizacao").style.bottom = "-100%";
+
+  // 🔥 VAI PARA PAGAMENTO
+  document.getElementById("telaCarrinho").classList.add("hidden");
+  document.getElementById("telaPagamento").classList.remove("hidden");
+
+salvarTelaAtual("telaPagamento");
+
+  mostrarResumo();
+});
+
+function fecharTelaCarrinho(){
+
+  document.getElementById("telaCarrinho").classList.add("hidden");
+
+  // 🔥 Volta para o Menu principal
+  document.getElementById("telaMenu").classList.remove("hidden");
+
+salvarTelaAtual("telaMenu");
+
+  // 🔥 Se tiver item no carrinho → mostra mini carrinho
+  if(carrinho.length > 0){
+    document.getElementById("carrinhoResumo").style.display = "block";
+  } else {
+    document.getElementById("carrinhoResumo").style.display = "none";
+  }
+
+}
+
+document.getElementById("btnFinalizarCarrinho").addEventListener("click", function(e){
+
+  e.stopPropagation();
+
+  // 🔥 Esconde mini carrinho
+  document.getElementById("carrinhoResumo").style.display = "none";
+
+  // 🔥 Abre tela carrinho
+  abrirTelaCarrinho();
+
+});
+function mostrarResumo(){
+
+  numeroPedidoGlobal = PedidoAPI.gerarNumeroPedido();
+
+  const resumoDiv = document.getElementById("resumo");
+  resumoDiv.innerHTML = "";
+  total = 0;
+
+  const agora = new Date();
+  const data = agora.toLocaleDateString("pt-BR");
+  const hora = agora.toLocaleTimeString("pt-BR");
+
+  carrinho.forEach(item => {
+    const valorItem = item.valorUnitario * item.quantidade;
+total += valorItem;
+    const p = document.createElement("p");
+    p.innerText = `${item.produto} x${item.quantidade} - R$${valorItem.toFixed(2)}
+Acompanhamentos: ${item.acompanhamentos.join(", ")}`;
+    resumoDiv.appendChild(p);
+  });
+
+  const pedidoCompleto = {
+    numero: numeroPedidoGlobal,
+    data: data,
+    hora: hora,
+    cliente: cliente,
+    itens: carrinho,
+    total: total
+  };
+
+  const complementoFinal = 
+  cliente.complemento && cliente.complemento.trim() !== "" 
+    ? cliente.complemento 
+    : "S/N";
+
+const info = document.createElement("p");
+info.innerText = `
+Pedido Nº: ${numeroPedidoGlobal}
+Data: ${data}
+Hora: ${hora}
+
+Nome: ${cliente.nome}
+CPF: ${cliente.cpf}
+Telefone: ${cliente.telefone}
+Endereço: ${cliente.endereco}, Nº ${cliente.numero}
+Complemento: ${complementoFinal}
+Prazo: 30-40 min
+
+Total: R$ ${total.toFixed(2)}
+`;
+  resumoDiv.appendChild(info);
+
+document.getElementById("carrinhoResumo").style.display = "none";
+// 🔥 AQUI CHAMA O PIX REAL
+  gerarPixReal(total);
+}
+
+async function gerarPixReal(valorTotal){
+
+  try{
+
+    const response = await fetch("/api/criar-pix", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        total: valorTotal
+      })
+    });
+
+    const data = await response.json();
+
+    if(data.qr_code_base64){
+
+      document.getElementById("qrPix").src =
+        "data:image/png;base64," + data.qr_code_base64;
+
+      document.getElementById("codigoPix").value =
+        data.qr_code;
+
+    } else {
+      alert("Erro ao gerar PIX");
+    }
+
+  }catch(error){
+    console.log(error);
+    alert("Erro ao conectar com servidor");
+  }
+
+}
+/* =========================
+   CONTROLE BOTÕES PAGAMENTO
+========================= */
+
+// VOLTAR AO CARDÁPIO
+document.getElementById("btnVoltar").addEventListener("click", function(){
+  document.getElementById("telaPagamento").classList.add("hidden");
+  document.getElementById("telaCardapio").classList.remove("hidden");
+
+salvarTelaAtual("telaCardapio");
+
+  document.getElementById("carrinhoResumo").style.display = "block";
+});
+
+// COPIAR QR CODE
+document.getElementById("btnCopiar").addEventListener("click", function(){
+
+  const textoPix = document.getElementById("codigoPix").value;
+
+  if(!textoPix){
+    alert("QR Code ainda não foi gerado.");
+    return;
+  }
+
+  navigator.clipboard.writeText(textoPix)
+    .then(() => alert("Código PIX copiado com sucesso!"))
+    .catch(() => alert("Erro ao copiar."));
+});
+
+// CONFIRMAR PAGAMENTO
+document.getElementById("btnPago").addEventListener("click", async function(){
+
+const dataHora = PedidoAPI.gerarDataHora();
+
+const pedidoCompleto = {
+  numero: numeroPedidoGlobal,
+  data: dataHora.data,
+  hora: dataHora.hora,
+  cliente: cliente,
+  itens: carrinho,
+  total: total,
+  status: "Novo"
+};
+
+// 🔥 SALVAR NO FIREBASE
+if(typeof salvarPedidoFirebase === "function"){
+  await salvarPedidoFirebase(pedidoCompleto);
+} else {
+  alert("Erro ao salvar pedido.");
+  return;
+}
+
+// 🔥 MENSAGEM
+alert(
+  "Pedido Confirmado!\n\n" +
+  "Número do Pedido: " + numeroPedidoGlobal + "\n\n" +
+  "Agora é só aguardar 30 a 40 minutos.\n\n" +
+  "Obrigado pela preferência!"
+);
+
+// 🔥 LIMPA CARRINHO
+carrinho = [];
+atualizarCarrinho();
+
+// 🔥 REMOVE TELA SALVA
+localStorage.removeItem("telaAtual");
+
+// 🔥 ESCONDE TODAS AS TELAS
+document.getElementById("telaPagamento").classList.add("hidden");
+document.getElementById("telaCarrinho").classList.add("hidden");
+document.getElementById("telaCardapio").classList.add("hidden");
+document.getElementById("telaMenu").classList.add("hidden");
+
+// 🔥 VOLTA PARA TELA INICIAL
+document.getElementById("telaCep").classList.remove("hidden");
+
+// 🔥 RESETA CAMPOS
+resetarTelaInicial();
+});
+// BOTÃO EDITAR ENDEREÇO
+document.getElementById("btnEditarEndereco").addEventListener("click", function(){
+
+  document.getElementById("editarEnderecoDiv").classList.remove("hidden");
+
+  document.getElementById("inputEditarEndereco").value =
+    cliente.endereco || endereco;
+
+});
+
+// SALVAR NOVO ENDEREÇO
+document.getElementById("btnSalvarEndereco").addEventListener("click", function(){
+
+  const novoEndereco =
+    document.getElementById("inputEditarEndereco").value.trim();
+
+  if(!novoEndereco){
+    alert("Digite um endereço válido");
+    return;
+  }
+
+  cliente.endereco = novoEndereco;
+  endereco = novoEndereco;
+
+  document.getElementById("enderecoConfirmacao").innerText =
+    novoEndereco;
+
+  document.getElementById("editarEnderecoDiv").classList.add("hidden");
+
+});
+function resetarTelaInicial(){
+
+  // 1️⃣ Limpa variáveis
+  endereco = "";
+  cliente = {};
+  pedido = [];
+  total = 0;
+
+  // 2️⃣ Limpa os campos
+  document.getElementById("cep").value = "";
+  document.getElementById("numero").value = "";
+  document.getElementById("complemento").value = "";
+  document.getElementById("nome").value = "";
+  document.getElementById("cpf").value = "";
+  document.getElementById("telefone").value = "";
+
+  // 3️⃣ Mostra mensagem inicial
+  document.getElementById("mensagemPrincipal").classList.remove("hidden");
+  document.getElementById("cepDiv").classList.remove("hidden");
+
+  // 4️⃣ Esconde todas outras etapas
+  document.getElementById("numeroDiv").classList.add("hidden");
+  document.getElementById("complementoDiv").classList.add("hidden");
+  document.getElementById("confirmacaoDiv").classList.add("hidden");
+  document.getElementById("nomeDiv").classList.add("hidden");
+  document.getElementById("cpfDiv").classList.add("hidden");
+  document.getElementById("telefoneDiv").classList.add("hidden");
+
+  // 5️⃣ Remove spinner e restaura texto original
+  document.getElementById("confirmacaoDiv").innerHTML = `
+    <h3 style="text-align:center;">
+      Ótimo, Temos uma loja na sua região,<br>
+      Prazo de entrega de 30 a 40 minutos.<br><br>
+      Deseja fazer um pedido.
+    </h3>
+    <button id="btnConfirmacao">Continuar</button>
+  `;
+
+}
+/* =========================
+   MINI CARRINHO ARRASTÁVEL
+========================= */
+
+const miniCarrinho = document.getElementById("carrinhoResumo");
+
+let isDragging = false;
+let offsetX, offsetY;
+
+miniCarrinho.addEventListener("mousedown", iniciarDrag);
+miniCarrinho.addEventListener("touchstart", iniciarDrag, { passive: false });
+
+function iniciarDrag(e){
+
+  isDragging = true;
+  miniCarrinho.style.cursor = "grabbing";
+
+  const rect = miniCarrinho.getBoundingClientRect();
+
+  if(e.type === "touchstart"){
+    offsetX = e.touches[0].clientX - rect.left;
+    offsetY = e.touches[0].clientY - rect.top;
+  } else {
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+  }
+
+  document.addEventListener("mousemove", arrastar);
+  document.addEventListener("mouseup", pararDrag);
+
+  document.addEventListener("touchmove", arrastar, { passive: false });
+  document.addEventListener("touchend", pararDrag);
+}
+
+function arrastar(e){
+
+  if(!isDragging) return;
+
+  e.preventDefault();
+
+  let clientX, clientY;
+
+  if(e.type === "touchmove"){
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+
+  let x = clientX - offsetX;
+  let y = clientY - offsetY;
+
+  // 🔥 LIMITAR DENTRO DA TELA
+  const maxX = window.innerWidth - miniCarrinho.offsetWidth;
+  const maxY = window.innerHeight - miniCarrinho.offsetHeight;
+
+  x = Math.max(0, Math.min(x, maxX));
+  y = Math.max(0, Math.min(y, maxY));
+
+  miniCarrinho.style.left = x + "px";
+  miniCarrinho.style.top = y + "px";
+  miniCarrinho.style.right = "auto";
+  miniCarrinho.style.bottom = "auto";
+}
+
+function pararDrag(){
+
+  isDragging = false;
+  miniCarrinho.style.cursor = "grab";
+
+  document.removeEventListener("mousemove", arrastar);
+  document.removeEventListener("mouseup", pararDrag);
+
+  document.removeEventListener("touchmove", arrastar);
+  document.removeEventListener("touchend", pararDrag);
+}
+window.addEventListener("load", function(){
+
+  const telaSalva = localStorage.getItem("telaAtual");
+
+  if(!telaSalva) return;
+
+  const telas = [
+    "telaCep",
+    "telaMenu",
+    "telaCardapio",
+    "telaCarrinho",
+    "telaPagamento"
+  ];
+
+  // Esconde todas
+  telas.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.add("hidden");
+  });
+
+  // Mostra a tela salva
+  const tela = document.getElementById(telaSalva);
+  if(tela){
+    tela.classList.remove("hidden");
+  }
+
+});
+</script>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyBHL35bUGz9yrP5W5JSe2aiKoWS97CnOyw",
+  authDomain: "acai-mania-bab4b.firebaseapp.com",
+  projectId: "acai-mania-bab4b",
+  storageBucket: "acai-mania-bab4b.firebasestorage.app",
+  messagingSenderId: "624824759538",
+  appId: "1:624824759538:web:689b2e73bf6d8b0781cc6b"};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.salvarPedidoFirebase = async function(pedido){
+  try{
+    await addDoc(collection(db, "pedidos"), pedido);
+  }catch(e){
+    console.error("Erro ao salvar:", e);
+    alert("Erro ao salvar pedido no Firebase.");
+  }
+}
+
+</script>
+</body>
+</html>
