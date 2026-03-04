@@ -14,22 +14,33 @@ export default async function handler(req, res) {
 
     const { total } = req.body;
 
+    if (!total) {
+      return res.status(400).json({ error: "Valor não enviado" });
+    }
+
     const payment = await mercadopago.payment.create({
       transaction_amount: Number(total),
-      description: "Pedido Açaí",
+      description: "Pedido Açai Mania",
       payment_method_id: "pix",
       payer: {
-        email: "teste@teste.com"
+        email: "cliente@acai.com"
       }
     });
 
+    const dados = payment.body.point_of_interaction.transaction_data;
+
     res.status(200).json({
-      qr_code: payment.body.point_of_interaction.transaction_data.qr_code,
-      qr_code_base64: payment.body.point_of_interaction.transaction_data.qr_code_base64
+      qr_code: dados.qr_code,
+      qr_code_base64: dados.qr_code_base64
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao gerar PIX" });
+
+    console.error("ERRO MP:", error);
+
+    res.status(500).json({
+      error: "Erro ao gerar PIX",
+      detalhe: error.message
+    });
   }
 }
