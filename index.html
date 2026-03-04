@@ -1223,8 +1223,9 @@ Total: R$ ${total.toFixed(2)}
   resumoDiv.appendChild(info);
 
 document.getElementById("carrinhoResumo").style.display = "none";
+  }
 // 🔥 AQUI CHAMA O PIX REAL
-function gerarPix() {
+  function gerarPix() {
   fetch("/api/criar-pix", {
     method: "POST", // 🔴 ESSA LINHA É O SEGREDO
     headers: {
