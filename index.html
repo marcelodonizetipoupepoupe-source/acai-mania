@@ -1224,31 +1224,31 @@ Total: R$ ${total.toFixed(2)}
 
 document.getElementById("carrinhoResumo").style.display = "none";
 // 🔥 AQUI CHAMA O PIX REAL
-  gerarPixReal(total);
-}
-
-async function gerarPixReal(valorTotal){
-
-  try{
-
-    const response = await fetch("/api/criar-pix", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    total: 10
+function gerarPix() {
+  fetch("/api/criar-pix", {
+    method: "POST", // 🔴 ESSA LINHA É O SEGREDO
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      total: 10
+    })
   })
-})
-.then(res => res.json())
-.then(data => {
-  console.log("QR:", data);
+  .then(res => res.json())
+  .then(data => {
+    console.log("QR:", data);
 
-  // mostrar QR code aqui
-})
-.catch(err => {
-  console.error("Erro:", err);
-});
+    // exemplo: mostrar QR
+    if (data.qr_code_base64) {
+      document.getElementById("qrcode").src =
+        "data:image/png;base64," + data.qr_code_base64;
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Erro ao conectar com servidor");
+  });
+}
 /* =========================
    CONTROLE BOTÕES PAGAMENTO
 ========================= */
