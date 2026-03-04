@@ -1243,6 +1243,8 @@ async function gerarPixReal(valorTotal){
 
     const data = await response.json();
 
+    console.log("RESPOSTA PIX:", data); // 🔥 DEBUG
+
     if(data.qr_code_base64){
 
       document.getElementById("qrPix").src =
@@ -1252,14 +1254,17 @@ async function gerarPixReal(valorTotal){
         data.qr_code;
 
     } else {
+
       alert("Erro ao gerar PIX");
+      console.error(data);
     }
 
   }catch(error){
-    console.log(error);
-    alert("Erro ao conectar com servidor");
-  }
 
+    console.error("ERRO FETCH:", error);
+    alert("Erro ao conectar com servidor");
+
+  }
 }
 /* =========================
    CONTROLE BOTÕES PAGAMENTO
