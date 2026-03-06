@@ -156,23 +156,6 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
   100% { transform:rotate(360deg); }
 }
 </style>
-  <!-- Meta Pixel Code -->
-<script>
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1430006692113799');
-fbq('track', 'PageView');
-</script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1430006692113799&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
 </head>
 <body>
 
@@ -301,11 +284,7 @@ src="https://www.facebook.com/tr?id=1430006692113799&ev=PageView&noscript=1"
   <div class="card">
     <h2>Resumo do Pedido</h2>
     <div id="resumo"></div>
-    <div id="loadingPix" style="display:none; text-align:center; font-size:18px; margin:20px;">
-  ⏳ Gerando pagamento via PIX...
-</div>
-
-<img id="qrPix" width="250" style="display:none;">
+    <img id="qrPix" width="250">
 <textarea id="codigoPix" readonly></textarea>
 <button id="btnCopiar">Copiar código PIX</button>
     <button id="btnVoltar">Voltar ao Menu Anterior</button>
@@ -777,31 +756,23 @@ div.id = "produto"+p.id;
   Acompanhamentos
 </button>
       <div class="acompanhamentos" id="acc${p.id}"></div>
-      <button onclick="adicionarCarrinho(${p.id})">
-  Adicionar ao Carrinho
-</button>
-`;
-container.appendChild(div);
+      <button onclick="adicionarCarrinho(${p.id})">Adicionar ao Carrinho</button>
+    `;
+    container.appendChild(div);
 
-const accDiv = document.getElementById("acc"+p.id);
-
-[...acompanhamentos,...frutas].forEach(a=>{
-  const aDiv = document.createElement("div");
-  aDiv.className="acompanhamentoItem";
-
-  aDiv.innerHTML = `
-    <img src="imagens/${a.toLowerCase()}.jpg" alt="${a}">
-    <span>${a}</span>
-    <div class="qtdAcc">
-      <button onclick="alterarAcc('${a}',${p.id},-1)">-</button>
-      <span id="accQtd${p.id}_${a}">0</span>
-      <button onclick="alterarAcc('${a}',${p.id},1)">+</button>
-    </div>
-  `;
-
-  accDiv.appendChild(aDiv);
-});
-});
+    const accDiv = document.getElementById("acc"+p.id);
+    [...acompanhamentos,...frutas].forEach(a=>{
+      const aDiv = document.createElement("div");
+      aDiv.className="acompanhamentoItem";
+      aDiv.innerHTML = `<img src="imagens/${a.toLowerCase()}.jpg" alt="${a}"><span>${a}</span>
+                        <div class="qtdAcc">
+                          <button onclick="alterarAcc('${a}',${p.id},-1)">-</button>
+                          <span id="accQtd${p.id}_${a}">0</span>
+                          <button onclick="alterarAcc('${a}',${p.id},1)">+</button>
+                        </div>`;
+      accDiv.appendChild(aDiv);
+    });
+  });
 }
 
 function abrirCategoria(tipo){
@@ -945,51 +916,69 @@ function abrirAcompanhamentos(id){
     accDiv.style.display = "none";
   }
 }
-function verificarAcompanhamentos(produtoId){
+function adicionarCarrinho(id){
 
-  let total = 0;
+  const qtd = parseInt(document.getElementById("qtd"+id).innerText);
+  const accSelecionados = [];
 
-  [...acompanhamentos, ...frutas].forEach(a=>{
-    const el = document.getElementById(`accQtd${produtoId}_${a}`);
-    if(el){
-      total += parseInt(el.innerText) || 0;
+  [...acompanhamentos, ...frutas].forEach(a => {
+    const checkbox = document.getElementById("acc"+id+"_"+a);
+    if(checkbox && checkbox.checked){
+      accSelecionados.push(a);
+      checkbox.checked = false; // 🔥 desmarca automaticamente
     }
   });
 
-  return total;
+  if (qtd > 0) {
+
+    const produto = produtosDados.find(p => p.id === id);
+
+carrinho.push({
+  produto: produto.nome,
+  valorUnitario: produto.valor,
+  quantidade: qtd,
+  acompanhamentos: accSelecionados,
+  imagem: produto.img   // 🔥 salva imagem
+});
+
+    // 🔥 FECHA OS ACOMPANHAMENTOS AUTOMATICAMENTE
+    document.getElementById("acc"+id).style.display = "none";
+
+    atualizarCarrinho();
+
+    // 🔥 RESETAR QUANTIDADE
+    document.getElementById("qtd"+id).innerText = "0";
+  }
 }
-  function adicionarCarrinho(produtoId){
 
-  const qtd = parseInt(document.getElementById("qtd"+produtoId).innerText);
+function atualizarCarrinho(){
 
-  if(qtd <= 0){
-    alert("Escolha a quantidade do produto");
-    return;
-  }
+  total = 0;
+  let quantidadeTotal = 0;
 
-  const accTotal = verificarAcompanhamentos(produtoId);
-
-  if(accTotal === 0){
-    alert("Escolha pelo menos 1 acompanhamento");
-    return;
-  }
-
-  const produto = produtos.find(p=>p.id===produtoId);
-
-  carrinho.push({
-    id: produto.id,
-    nome: produto.nome,
-    valor: produto.valor,
-    qtd: qtd
+  carrinho.forEach(item => {
+    total += item.valorUnitario * item.quantidade;
+    quantidadeTotal += item.quantidade;
   });
 
-  atualizarCarrinho();
+  const resumoMini = document.getElementById("resumoCarrinhoMini");
 
-  // abrir carrinho automaticamente
-  document.querySelectorAll(".overlay").forEach(t=>t.classList.add("hidden"));
-  document.getElementById("carrinho").classList.remove("hidden");
+  if(carrinho.length === 0){
+    document.getElementById("carrinhoResumo").style.display = "none";
+    return;
+  }
 
+  resumoMini.innerText =
+    `🛒 ${quantidadeTotal} • R$ ${total.toFixed(2)}`;
+
+  document.getElementById("carrinhoResumo").style.display = "block";
 }
+document.getElementById("carrinhoResumo").addEventListener("click", abrirTelaCarrinho);
+document.getElementById("btnEditarMini").addEventListener("click", function(e){
+  e.stopPropagation();
+  abrirTelaCarrinho();
+});
+
 function abrirTelaCarrinho(){
 
   // 🔥 Esconde mini carrinho SEMPRE
@@ -1234,56 +1223,43 @@ Total: R$ ${total.toFixed(2)}
   resumoDiv.appendChild(info);
 
 document.getElementById("carrinhoResumo").style.display = "none";
-
-window.totalPedido = total;
-
-// 🔥 SEM BLOQUEIO
-gerarPix();
-  }
 // 🔥 AQUI CHAMA O PIX REAL
-  function gerarPix() {
+  gerarPixReal(total);
+}
 
-  // 🔄 MOSTRA LOADING
-  document.getElementById("loadingPix").style.display = "block";
-  document.getElementById("qrPix").style.display = "none";
+async function gerarPixReal(valorTotal){
 
-  fetch("/api/criar-pix", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      total: window.totalPedido || 10
-    })
-  })
- .then(async res => {
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text);
-  }
-  return res.json();
-})
-  .then(data => {
-    console.log("QR:", data);
+  try{
 
-    // ✅ ESCONDE LOADING
-    document.getElementById("loadingPix").style.display = "none";
+    const response = await fetch("/api/criar-pix", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        total: valorTotal
+      })
+    });
 
-    if (data.qr_code_base64) {
-      const img = document.getElementById("qrPix");
-      img.src = "data:image/png;base64," + data.qr_code_base64;
-      img.style.display = "block";
+    const data = await response.json();
+
+    if(data.qr_code_base64){
+
+      document.getElementById("qrPix").src =
+        "data:image/png;base64," + data.qr_code_base64;
+
+      document.getElementById("codigoPix").value =
+        data.qr_code;
+
+    } else {
+      alert("Erro ao gerar PIX");
     }
 
-    if (data.qr_code) {
-      document.getElementById("codigoPix").value = data.qr_code;
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById("loadingPix").style.display = "none";
+  }catch(error){
+    console.log(error);
     alert("Erro ao conectar com servidor");
-  });
+  }
+
 }
 /* =========================
    CONTROLE BOTÕES PAGAMENTO
@@ -1347,7 +1323,6 @@ alert(
 
 // 🔥 LIMPA CARRINHO
 carrinho = [];
-  window.pixGerado = false;
 atualizarCarrinho();
 
 // 🔥 REMOVE TELA SALVA
