@@ -945,69 +945,51 @@ function abrirAcompanhamentos(id){
     accDiv.style.display = "none";
   }
 }
-function adicionarCarrinho(id){
+function verificarAcompanhamentos(produtoId){
 
-  const qtd = parseInt(document.getElementById("qtd"+id).innerText);
-  const accSelecionados = [];
+  let total = 0;
 
-  [...acompanhamentos, ...frutas].forEach(a => {
-    const checkbox = document.getElementById("acc"+id+"_"+a);
-    if(checkbox && checkbox.checked){
-      accSelecionados.push(a);
-      checkbox.checked = false; // 🔥 desmarca automaticamente
+  [...acompanhamentos, ...frutas].forEach(a=>{
+    const el = document.getElementById(`accQtd${produtoId}_${a}`);
+    if(el){
+      total += parseInt(el.innerText) || 0;
     }
   });
 
-  if (qtd > 0) {
-
-    const produto = produtosDados.find(p => p.id === id);
-
-carrinho.push({
-  produto: produto.nome,
-  valorUnitario: produto.valor,
-  quantidade: qtd,
-  acompanhamentos: accSelecionados,
-  imagem: produto.img   // 🔥 salva imagem
-});
-
-    // 🔥 FECHA OS ACOMPANHAMENTOS AUTOMATICAMENTE
-    document.getElementById("acc"+id).style.display = "none";
-
-    atualizarCarrinho();
-
-    // 🔥 RESETAR QUANTIDADE
-    document.getElementById("qtd"+id).innerText = "0";
-  }
+  return total;
 }
+  function adicionarCarrinho(produtoId){
 
-function atualizarCarrinho(){
+  const qtd = parseInt(document.getElementById("qtd"+produtoId).innerText);
 
-  total = 0;
-  let quantidadeTotal = 0;
-
-  carrinho.forEach(item => {
-    total += item.valorUnitario * item.quantidade;
-    quantidadeTotal += item.quantidade;
-  });
-
-  const resumoMini = document.getElementById("resumoCarrinhoMini");
-
-  if(carrinho.length === 0){
-    document.getElementById("carrinhoResumo").style.display = "none";
+  if(qtd <= 0){
+    alert("Escolha a quantidade do produto");
     return;
   }
 
-  resumoMini.innerText =
-    `🛒 ${quantidadeTotal} • R$ ${total.toFixed(2)}`;
+  const accTotal = verificarAcompanhamentos(produtoId);
 
-  document.getElementById("carrinhoResumo").style.display = "block";
+  if(accTotal === 0){
+    alert("Escolha pelo menos 1 acompanhamento");
+    return;
+  }
+
+  const produto = produtos.find(p=>p.id===produtoId);
+
+  carrinho.push({
+    id: produto.id,
+    nome: produto.nome,
+    valor: produto.valor,
+    qtd: qtd
+  });
+
+  atualizarCarrinho();
+
+  // abrir carrinho automaticamente
+  document.querySelectorAll(".overlay").forEach(t=>t.classList.add("hidden"));
+  document.getElementById("carrinho").classList.remove("hidden");
+
 }
-document.getElementById("carrinhoResumo").addEventListener("click", abrirTelaCarrinho);
-document.getElementById("btnEditarMini").addEventListener("click", function(e){
-  e.stopPropagation();
-  abrirTelaCarrinho();
-});
-
 function abrirTelaCarrinho(){
 
   // 🔥 Esconde mini carrinho SEMPRE
