@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Açaí Delivery Mobile</title>  
 <style>
-body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; color:#fff; height: 100vh;} /* Adicionado height: 100vh para garantir que o body cubra toda a altura */
+body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; color:#fff; overflow-x: hidden;}
 .overlay {
   height:100vh;
   width:100%;
@@ -16,6 +16,7 @@ body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; 
   top:0;
   left:0;
   overflow-y:auto;
+  padding-bottom: 100px; /* Adiciona espaço para o conteúdo não ficar escondido pelo botão fixo */
 }
 .sugestoesGrid{
   display:flex;
@@ -56,13 +57,15 @@ body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; 
   padding:10px 14px;
   border-radius:8px;
   font-size:18px;
+  z-index: 10; /* Garante que o botão fique sobre o conteúdo */
 }
 #telaMenu .card{
   padding-top:60px;
 }
 h2,h3{color:#fff; text-align:center;}
 input,button{padding:8px; margin:5px 0; border-radius:8px; border:none; font-size:16px;}
-button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
+button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer; transition:0.3s;}
+button:hover{background:#8e24aa;}
 .hidden{display:none;}
 .produto{border:1px solid #fff; padding:10px; margin:5px; border-radius:10px; display:flex; flex-direction:column; align-items:center;}
 .produto img{width:80px; height:80px; object-fit:cover; border-radius:8px; margin-bottom:5px;}
@@ -94,7 +97,7 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
   border-radius:6px;
   margin-bottom:3px;
 }
-.finalizarCentral{position:fixed; bottom:10%; left:50%; transform:translateX(-50%); background:#7b1fa2; color:#fff; font-size:18px; padding:15px; border-radius:10px; cursor:pointer; display:none;}
+.finalizarCentral{position:fixed; bottom:10%; left:50%; transform:translateX(-50%); background:#7b1fa2; color:#fff; font-size:18px; padding:15px; border-radius:10px; cursor:pointer; display:none; z-index: 1000;}
 .qrcode{display:block; margin:10px auto; max-width:200px;}
 .mensagemAcomp{color:#ff5722; text-align:center; margin:5px; display:none; font-weight:bold;}
 .carrinhoIcon{position:fixed; top:10px; right:10px; background:#ff5722; color:#fff; border-radius:50%; padding:10px; cursor:pointer; font-size:20px; z-index:1000;}
@@ -172,14 +175,14 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
 
     <!-- CEP -->
     <div id="cepDiv">
-     <input id="cep" placeholder="Digite seu CEP">
+     <input id="cep" placeholder="Digite seu CEP" type="number">
       <button id="btnCep">Continuar</button>
     </div>
 
     <!-- NUMERO CASA -->
     <div id="numeroDiv" class="hidden">
       <h3>Qual número da casa?</h3>
-      <input id="numero" placeholder="Digite o número">
+      <input id="numero" placeholder="Digite o número" type="number">
       <button id="btnNumero">Continuar</button>
     </div>
 
@@ -209,13 +212,13 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
 
     <div id="cpfDiv" class="hidden">
       <p style="text-align:center; font-weight:bold;">Me Confirma o CPF ? (apenas para nota fiscal)</p>
-      <input id="cpf" placeholder="Digite seu CPF">
+      <input id="cpf" placeholder="Digite seu CPF" inputmode="numeric" maxlength="14">
       <button id="btnCpf">Continuar</button>
     </div>
 
     <div id="telefoneDiv" class="hidden">
       <p style="text-align:center; font-weight:bold;">Telefone para contato?</p>
-      <input id="telefone" placeholder="Digite seu telefone">
+      <input id="telefone" placeholder="Digite seu telefone" inputmode="tel" maxlength="15">
       <button id="btnTelefone">Continuar</button>
     </div>
 
@@ -365,17 +368,17 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
 
 <div class="drawerInput">
   <span>🪪</span>
-  <input id="drawerCpf" placeholder="CPF (opcional)">
+  <input id="drawerCpf" placeholder="CPF (opcional)" inputmode="numeric" maxlength="14">
 </div>
 
 <div class="drawerInput">
   <span>📞</span>
-  <input id="drawerTelefone" placeholder="Telefone">
+  <input id="drawerTelefone" placeholder="Telefone" inputmode="tel" maxlength="15">
 </div>
 
 <div class="drawerInput">
   <span>🏠</span>
-  <input id="drawerNumero" placeholder="Número da casa">
+  <input id="drawerNumero" placeholder="Número da casa" type="number">
 </div>
 
 <div class="drawerInput">
@@ -462,7 +465,7 @@ document.getElementById("btnCep").addEventListener("click", async function(){
   }
 
   try{
-    // Adicionando API para consulta de CEP
+
     const resposta = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
 
     if(!resposta.ok){
@@ -472,9 +475,8 @@ document.getElementById("btnCep").addEventListener("click", async function(){
     const data = await resposta.json();
 
     endereco = `${data.street}, ${data.neighborhood} - ${data.city}`;
-    cliente.endereco = endereco;
-    cliente.cep = cep;
-    
+cliente.endereco = endereco;
+cliente.cep = cep;
     // 🔥 ESCONDE CEP
     document.getElementById("cepDiv").classList.add("hidden");
     document.getElementById("mensagemPrincipal").classList.add("hidden");
@@ -498,7 +500,7 @@ document.getElementById("btnCep").addEventListener("click", async function(){
       document.getElementById("telaCep").classList.add("hidden");
       document.getElementById("telaMenu").classList.remove("hidden");
 
-      salvarTelaAtual("telaMenu");
+salvarTelaAtual("telaMenu");
 
     }, 5000);
 
@@ -553,14 +555,32 @@ document.getElementById("btnNome").addEventListener("click", function(){
 
 // CPF
 document.getElementById("btnCpf").addEventListener("click", function(){
-  const cpf = document.getElementById("cpf").value.trim().replace(/\D/g, ""); // Remove non-digits
-  if(cpf.length < 11){ 
+  const cpf = document.getElementById("cpf").value.trim().replace(/\D/g, ''); // Remove não números
+  if(cpf.length !== 11){ 
     alert("Digite CPF válido com 11 números"); 
     return; 
   }
   document.getElementById("cpfDiv").classList.add("hidden");
   document.getElementById("telefoneDiv").classList.remove("hidden");
 });
+
+// MÁSCARA CPF
+document.getElementById("cpf").addEventListener("input", function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 11) {
+        value = value.slice(0, 11);
+    }
+    if (value.length <= 3) {
+        e.target.value = value;
+    } else if (value.length <= 6) {
+        e.target.value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    } else if (value.length <= 9) {
+        e.target.value = value.replace(/(\d{3})(\d{3})(\d)/, '$1.$2.$3');
+    } else {
+        e.target.value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+    }
+});
+
 // MÁSCARA TELEFONE PROFISSIONAL
 document.getElementById("telefone").addEventListener("input", function(e){
 
@@ -585,7 +605,7 @@ document.getElementById("telefone").addEventListener("input", function(e){
 document.getElementById("btnTelefone").addEventListener("click", function(){
 
   const telefoneInput = document.getElementById("telefone").value.trim();
-  const cpfInput = document.getElementById("cpf").value.trim();
+  const cpfInput = document.getElementById("cpf").value.trim().replace(/\D/g, ''); // Remove não números
   const nomeInput = document.getElementById("nome").value.trim();
   const numeroCasaInput = document.getElementById("numero").value.trim();
 
@@ -608,7 +628,7 @@ document.getElementById("btnTelefone").addEventListener("click", function(){
   document.getElementById("telaCep").classList.add("hidden");
   document.getElementById("telaMenu").classList.remove("hidden");
 
-  salvarTelaAtual("telaMenu");
+salvarTelaAtual("telaMenu");
 
 });
   
@@ -661,7 +681,7 @@ document.getElementById("btnIrCardapio").addEventListener("click", function(){
   document.getElementById("telaMenu").classList.add("hidden");
   document.getElementById("telaCardapio").classList.remove("hidden");
 
-  salvarTelaAtual("telaCardapio");
+salvarTelaAtual("telaCardapio");
 
   const container = document.getElementById("produtos");
   container.innerHTML = ""; // 🔥 limpa sempre
@@ -1093,7 +1113,7 @@ function abrirTelaCarrinho(){
   document.getElementById("telaCardapio").classList.add("hidden");
   document.getElementById("telaCarrinho").classList.remove("hidden");
 
-  salvarTelaAtual("telaCarrinho");
+salvarTelaAtual("telaCarrinho");
 
 }
 function removerItemCarrinho(index){
@@ -1118,10 +1138,10 @@ document.getElementById("btnFinalizarEditado").addEventListener("click", () => {
 
   // Puxa endereço da API
   document.getElementById("enderecoConfirmacao").innerText =
-    cliente.endereco || endereco || "Endereço não encontrado";
-  // 🔥 Garante que está mostrando endereço atualizado
-  document.getElementById("enderecoConfirmacao").innerText =
-    cliente.endereco || endereco || "Endereço não encontrado";
+    cliente.endereco;
+// 🔥 Garante que está mostrando endereço atualizado
+document.getElementById("enderecoConfirmacao").innerText =
+  cliente.endereco || endereco || "Endereço não encontrado";
   // Preenche dados já existentes
   document.getElementById("drawerNome").value = cliente.nome || "";
  document.getElementById("drawerCpf").value = cliente.cpf || "";
@@ -1141,7 +1161,7 @@ document.getElementById("btnVoltarDrawer").addEventListener("click", function(){
 document.getElementById("btnConfirmarDrawer").addEventListener("click", function(){
 
   const nome = document.getElementById("drawerNome").value.trim();
-  const cpf = document.getElementById("drawerCpf").value.trim();
+  const cpf = document.getElementById("drawerCpf").value.trim().replace(/\D/g, ''); // Remove não números
   const telefone = document.getElementById("drawerTelefone").value.trim();
   const numero = document.getElementById("drawerNumero").value.trim();
   const complemento = document.getElementById("drawerComplemento").value.trim();
@@ -1149,6 +1169,11 @@ document.getElementById("btnConfirmarDrawer").addEventListener("click", function
   if(!nome || !numero || !telefone){
     alert("Preencha Nome, Telefone e Número da casa");
     return;
+  }
+
+  if (cpf.length > 0 && cpf.length !== 11) {
+      alert("CPF inválido. Por favor, insira um CPF com 11 dígitos ou deixe em branco.");
+      return;
   }
 
   cliente.nome = nome;
@@ -1164,7 +1189,7 @@ document.getElementById("btnConfirmarDrawer").addEventListener("click", function
   document.getElementById("telaCarrinho").classList.add("hidden");
   document.getElementById("telaPagamento").classList.remove("hidden");
 
-  salvarTelaAtual("telaPagamento");
+salvarTelaAtual("telaPagamento");
 
   mostrarResumo();
 });
@@ -1176,7 +1201,7 @@ function fecharTelaCarrinho(){
   // 🔥 Volta para o Menu principal
   document.getElementById("telaMenu").classList.remove("hidden");
 
-  salvarTelaAtual("telaMenu");
+salvarTelaAtual("telaMenu");
 
   // 🔥 Se tiver item no carrinho → mostra mini carrinho
   if(carrinho.length > 0){
@@ -1297,7 +1322,7 @@ document.getElementById("btnVoltar").addEventListener("click", function(){
   document.getElementById("telaPagamento").classList.add("hidden");
   document.getElementById("telaCardapio").classList.remove("hidden");
 
-  salvarTelaAtual("telaCardapio");
+salvarTelaAtual("telaCardapio");
 
   document.getElementById("carrinhoResumo").style.display = "block";
 });
