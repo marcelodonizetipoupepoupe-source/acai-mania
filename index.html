@@ -777,23 +777,31 @@ div.id = "produto"+p.id;
   Acompanhamentos
 </button>
       <div class="acompanhamentos" id="acc${p.id}"></div>
-      <button onclick="adicionarCarrinho(${p.id})">Adicionar ao Carrinho</button>
-    `;
-    container.appendChild(div);
+      <button onclick="adicionarCarrinho(${p.id})">
+  Adicionar ao Carrinho
+</button>
+`;
+container.appendChild(div);
 
-    const accDiv = document.getElementById("acc"+p.id);
-    [...acompanhamentos,...frutas].forEach(a=>{
-      const aDiv = document.createElement("div");
-      aDiv.className="acompanhamentoItem";
-      aDiv.innerHTML = `<img src="imagens/${a.toLowerCase()}.jpg" alt="${a}"><span>${a}</span>
-                        <div class="qtdAcc">
-                          <button onclick="alterarAcc('${a}',${p.id},-1)">-</button>
-                          <span id="accQtd${p.id}_${a}">0</span>
-                          <button onclick="alterarAcc('${a}',${p.id},1)">+</button>
-                        </div>`;
-      accDiv.appendChild(aDiv);
-    });
-  });
+const accDiv = document.getElementById("acc"+p.id);
+
+[...acompanhamentos,...frutas].forEach(a=>{
+  const aDiv = document.createElement("div");
+  aDiv.className="acompanhamentoItem";
+
+  aDiv.innerHTML = `
+    <img src="imagens/${a.toLowerCase()}.jpg" alt="${a}">
+    <span>${a}</span>
+    <div class="qtdAcc">
+      <button onclick="alterarAcc('${a}',${p.id},-1)">-</button>
+      <span id="accQtd${p.id}_${a}">0</span>
+      <button onclick="alterarAcc('${a}',${p.id},1)">+</button>
+    </div>
+  `;
+
+  accDiv.appendChild(aDiv);
+});
+});
 }
 
 function abrirCategoria(tipo){
