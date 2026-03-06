@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Açaí Delivery Mobile</title>  
 <style>
-body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; color:#fff;}
+body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; color:#fff; overflow-x:hidden;} /* overflow-x:hidden para evitar scroll horizontal */
 .overlay {
   height:100vh;
   width:100%;
@@ -16,6 +16,7 @@ body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; 
   top:0;
   left:0;
   overflow-y:auto;
+  padding-bottom: 120px; /* Espaço para o mini carrinho */
 }
 .sugestoesGrid{
   display:flex;
@@ -56,6 +57,7 @@ body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; 
   padding:10px 14px;
   border-radius:8px;
   font-size:18px;
+  z-index: 10; /* Garante que o botão fique sobre outros elementos */
 }
 #telaMenu .card{
   padding-top:60px;
@@ -71,20 +73,23 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
 .qtdProd, .qtdAcc{display:flex; justify-content:center; align-items:center; margin:5px 0;}
 .qtdProd button, .qtdAcc button{width:30px; height:30px; margin:0 5px;}
 .acompanhamentos{
-  display:none;
+  display:none; /* Oculto por padrão */
   flex-wrap:wrap;
-  justify-content:space-between;
+  justify-content:center; /* Centraliza os itens */
   margin-top:10px;
   gap:8px;
+  border-top: 1px dashed #7b1fa2; /* Linha separadora */
+  padding-top: 8px;
 }
 
 .acompanhamentoItem{
-  width:18%;
+  width:45%; /* Ajusta para caber dois por linha */
   display:flex;
   flex-direction:column;
   align-items:center;
   font-size:11px;
   text-align:center;
+  margin-bottom: 10px; /* Espaço entre as linhas de acompanhamentos */
 }
 
 .acompanhamentoItem img{
@@ -94,27 +99,33 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
   border-radius:6px;
   margin-bottom:3px;
 }
-.finalizarCentral{position:fixed; bottom:10%; left:50%; transform:translateX(-50%); background:#7b1fa2; color:#fff; font-size:18px; padding:15px; border-radius:10px; cursor:pointer; display:none;}
+.finalizarCentral{position:fixed; bottom:10%; left:50%; transform:translateX(-50%); background:#7b1fa2; color:#fff; font-size:18px; padding:15px; border-radius:10px; cursor:pointer; display:none; z-index: 1000;}
 .qrcode{display:block; margin:10px auto; max-width:200px;}
 .mensagemAcomp{color:#ff5722; text-align:center; margin:5px; display:none; font-weight:bold;}
+/* Carrinho de Compras - Estilos modificados */
 .carrinhoIcon{position:fixed; top:10px; right:10px; background:#ff5722; color:#fff; border-radius:50%; padding:10px; cursor:pointer; font-size:20px; z-index:1000;}
 .carrinhoResumo{
-  position:fixed;
-  bottom:12px;
-  right:12px;
-  background:#7b1fa2;
-  color:#fff;
-  padding:6px 12px;
-  border-radius:25px;
-  box-shadow:0px 4px 8px rgba(0,0,0,0.4);
-  display:none;
-  z-index:3000;
-  font-size:12px;
-  font-weight:bold;
-  min-width:120px;
-  text-align:center;
-  cursor:grab;
-  user-select:none;
+  position: fixed;
+  top: 70px; /* Fixo no topo, abaixo do cabeçalho */
+  right: 10px;
+  background: #7b1fa2;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 25px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
+  display: none; /* Oculto por padrão */
+  z-index: 3000;
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 150px;
+  text-align: center;
+  cursor: grab;
+  user-select: none;
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Transição suave */
+}
+.carrinhoResumo:hover {
+  background-color: #9a4fbe; /* Cor mais clara ao passar o mouse */
+  transform: scale(1.05); /* Leve zoom */
 }
 .carrinhoResumo h3{display:none;}
 .drawerInput {
@@ -292,12 +303,6 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
   </div>
 </div>
 
-<!-- Carrinho de Compras -->
-<!-- Removido o carrinho no canto direito -->
-<!-- <div class="carrinhoIcon" id="carrinhoIcon">🛒</div> -->
-
-<!-- Resumo Carrinho -->
-
 <!-- TELA CARRINHO COMPLETO -->
 <div class="overlay hidden" id="telaCarrinho" style="background-image: url('imagens/capa.jpg');">
   <div class="card">
@@ -309,6 +314,7 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
   </div>
 </div>
 
+<!-- Resumo Carrinho - Fixo no topo direito -->
 <div class="carrinhoResumo" id="carrinhoResumo">
   <div id="resumoCarrinhoMini"></div>
 
@@ -317,6 +323,7 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
     <button id="btnFinalizarCarrinho" style="font-size:10px; padding:3px 6px;">Finalizar</button>
   </div>
 </div>
+
 <!-- DRAWER FINALIZAÇÃO -->
 <div id="drawerFinalizacao" style="
   position:fixed;
@@ -407,10 +414,13 @@ button{background:#7b1fa2; color:#fff; font-weight:bold; cursor:pointer;}
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script>
 let endereco="", cliente={}, pedido=[], total=0;
-let carrinho = []; let numeroPedidoGlobal = ""; // Novo carrinho
+let carrinho = []; 
+let numeroPedidoGlobal = ""; // Novo carrinho
+
 function salvarTelaAtual(nomeTela){
 localStorage.setItem("telaAtual", nomeTela);
 }
+
 /* =========================
    BANCO DE PEDIDOS
 ========================= */
@@ -429,6 +439,7 @@ const PedidoDB = {
     return String(novo).padStart(5,"0");
   }
 };
+
 /* =========================
    API INTERNA DE PEDIDOS
 ========================= */
@@ -472,8 +483,8 @@ document.getElementById("btnCep").addEventListener("click", async function(){
     const data = await resposta.json();
 
     endereco = `${data.street}, ${data.neighborhood} - ${data.city}`;
-cliente.endereco = endereco;
-cliente.cep = cep;
+    cliente.endereco = endereco;
+    cliente.cep = cep;
     // 🔥 ESCONDE CEP
     document.getElementById("cepDiv").classList.add("hidden");
     document.getElementById("mensagemPrincipal").classList.add("hidden");
@@ -497,7 +508,7 @@ cliente.cep = cep;
       document.getElementById("telaCep").classList.add("hidden");
       document.getElementById("telaMenu").classList.remove("hidden");
 
-salvarTelaAtual("telaMenu");
+      salvarTelaAtual("telaMenu");
 
     }, 5000);
 
@@ -607,7 +618,7 @@ document.getElementById("btnTelefone").addEventListener("click", function(){
   document.getElementById("telaCep").classList.add("hidden");
   document.getElementById("telaMenu").classList.remove("hidden");
 
-salvarTelaAtual("telaMenu");
+  salvarTelaAtual("telaMenu");
 
 });
   
@@ -649,7 +660,7 @@ document.getElementById("btnVoltarMenu").addEventListener("click", function(){
   if(carrinho.length > 0){
     
   }
-
+  salvarTelaAtual("telaMenu"); // Salva o estado
 });
 // CARDÁPIO
 // CARDÁPIO
@@ -660,7 +671,7 @@ document.getElementById("btnIrCardapio").addEventListener("click", function(){
   document.getElementById("telaMenu").classList.add("hidden");
   document.getElementById("telaCardapio").classList.remove("hidden");
 
-salvarTelaAtual("telaCardapio");
+  salvarTelaAtual("telaCardapio");
 
   const container = document.getElementById("produtos");
   container.innerHTML = ""; // 🔥 limpa sempre
@@ -741,7 +752,7 @@ function carregarProdutos(){
   produtosDados.forEach(p=>{
     const div = document.createElement("div");
     div.className = "produto";
-div.id = "produto"+p.id;
+    div.id = "produto"+p.id;
     div.innerHTML = `
       <img src="${p.img}" alt="${p.nome}">
       <h3>${p.nome}</h3>
@@ -756,7 +767,7 @@ div.id = "produto"+p.id;
   Acompanhamentos
 </button>
       <div class="acompanhamentos" id="acc${p.id}"></div>
-      <button onclick="adicionarCarrinho(${p.id})">Adicionar ao Carrinho</button>
+      <button id="btnAdicionar${p.id}" class="hidden" style="font-size:14px; padding: 8px 12px;" onclick="adicionarCarrinho(${p.id})">Adicionar ao Carrinho</button>
     `;
     container.appendChild(div);
 
@@ -779,8 +790,9 @@ function abrirCategoria(tipo){
 
   document.getElementById("telaMenu").classList.add("hidden");
   document.getElementById("telaCardapio").classList.remove("hidden");
+  salvarTelaAtual("telaCardapio"); // Salva o estado
 
-  document.getElementById("carrinhoResumo").style.display = "block";
+  document.getElementById("carrinhoResumo").style.display = "block"; // Mostra o mini carrinho
 
   const container = document.getElementById("produtos");
   container.innerHTML = "";
@@ -826,7 +838,7 @@ function carregarProdutosFiltrados(lista){
   lista.forEach(p=>{
     const div = document.createElement("div");
     div.className = "produto";
-div.id = "produto"+p.id;
+    div.id = "produto"+p.id;
 
     div.innerHTML = `
       <img src="${p.img}" alt="${p.nome}">
@@ -846,7 +858,7 @@ div.id = "produto"+p.id;
 
       <div class="acompanhamentos" id="acc${p.id}"></div>
 
-      <button onclick="adicionarCarrinho(${p.id})">
+      <button id="btnAdicionar${p.id}" class="hidden" style="font-size:14px; padding: 8px 12px;" onclick="adicionarCarrinho(${p.id})">
         Adicionar ao Carrinho
       </button>
     `;
@@ -861,11 +873,14 @@ div.id = "produto"+p.id;
       aDiv.innerHTML = `
         <img src="imagens/${a.toLowerCase()}.jpg" alt="${a}">
         <span>${a}</span>
-        <label>
-  <input type="checkbox" id="acc${p.id}_${a}" value="${a}">
-</label>
+        <div class="qtdAcc">
+          <button onclick="alterarAcc('${a}',${p.id},-1)">-</button>
+          <span id="accQtd${p.id}_${a}">0</span>
+          <button onclick="alterarAcc('${a}',${p.id},1)">+</button>
+        </div>
       `;
       accDiv.appendChild(aDiv);
+
     });
 
   });
@@ -876,7 +891,20 @@ function alterarQtd(id, delta){
   let val = parseInt(span.innerText);
   val = Math.max(0,val+delta);
   span.innerText = val;
+
+  const btnAdicionar = document.getElementById(`btnAdicionar${id}`);
+  // Mostra o botão "Adicionar ao Carrinho" se a quantidade for maior que 0
+  if (val > 0) {
+    btnAdicionar.classList.remove("hidden");
+    // Abre automaticamente os acompanhamentos se houver quantidade
+    abrirAcompanhamentos(id); 
+  } else {
+    btnAdicionar.classList.add("hidden");
+    // Fecha os acompanhamentos se a quantidade for 0
+    document.getElementById("acc"+id).style.display = "none"; 
+  }
 }
+
 function rolarParaProduto(id){
 
   const produto = document.getElementById("produto"+id);
@@ -896,58 +924,78 @@ function rolarParaProduto(id){
 function abrirAcompanhamentos(id){
 
   const accDiv = document.getElementById("acc"+id);
+  const qtd = parseInt(document.getElementById("qtd"+id).innerText); // Verifica a quantidade
 
-  if(accDiv.style.display === "none" || accDiv.style.display === "") {
-    accDiv.style.display = "flex";
+  if (qtd > 0) { // Só abre se houver quantidade selecionada
+      if (accDiv.style.display === "none" || accDiv.style.display === "") {
+          accDiv.style.display = "flex";
 
-    // 🔥 ROLA SUAVEMENTE ATÉ O PRODUTO
-    const produtoCard = accDiv.closest(".produto");
+          // 🔥 ROLA SUAVEMENTE ATÉ O PRODUTO
+          const produtoCard = accDiv.closest(".produto");
 
-    if(produtoCard){
-      setTimeout(() => {
-        produtoCard.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }, 100);
-    }
-
+          if (produtoCard) {
+              setTimeout(() => {
+                  produtoCard.scrollIntoView({
+                      behavior: "smooth",
+                      block: "start"
+                  });
+              }, 100);
+          }
+      } else {
+          accDiv.style.display = "none";
+      }
   } else {
-    accDiv.style.display = "none";
+      accDiv.style.display = "none"; // Garante que esteja fechado se a quantidade for 0
   }
 }
+
 function adicionarCarrinho(id){
 
   const qtd = parseInt(document.getElementById("qtd"+id).innerText);
   const accSelecionados = [];
+  let acompanhamentosValidos = []; // Para contar acompanhamentos válidos
 
+  // Itera sobre todos os acompanhamentos e frutas possíveis
   [...acompanhamentos, ...frutas].forEach(a => {
-    const checkbox = document.getElementById("acc"+id+"_"+a);
-    if(checkbox && checkbox.checked){
-      accSelecionados.push(a);
-      checkbox.checked = false; // 🔥 desmarca automaticamente
+    const checkbox = document.getElementById(`acc${id}_${a}`);
+    // Verifica se o checkbox existe e está marcado
+    if (checkbox && checkbox.checked) { 
+      acompanhamentosValidos.push(a); // Adiciona o acompanhamento à lista
+      accSelecionados.push(a); // Adiciona à lista para o carrinho
     }
   });
+
+  // Verifica se pelo menos 2 acompanhamentos foram selecionados
+  if (acompanhamentosValidos.length < 2) {
+    document.getElementById("msgAcomp").style.display = "block"; // Mostra mensagem de erro
+    return; // Impede a adição ao carrinho
+  } else {
+    document.getElementById("msgAcomp").style.display = "none"; // Esconde mensagem se válida
+  }
 
   if (qtd > 0) {
 
     const produto = produtosDados.find(p => p.id === id);
 
-carrinho.push({
-  produto: produto.nome,
-  valorUnitario: produto.valor,
-  quantidade: qtd,
-  acompanhamentos: accSelecionados,
-  imagem: produto.img   // 🔥 salva imagem
-});
+    carrinho.push({
+      produto: produto.nome,
+      valorUnitario: produto.valor,
+      quantidade: qtd,
+      acompanhamentos: accSelecionados,
+      imagem: produto.img   // 🔥 salva imagem
+    });
 
     // 🔥 FECHA OS ACOMPANHAMENTOS AUTOMATICAMENTE
     document.getElementById("acc"+id).style.display = "none";
 
     atualizarCarrinho();
 
-    // 🔥 RESETAR QUANTIDADE
+    // 🔥 RESETAR QUANTIDADE E BOTÃO
     document.getElementById("qtd"+id).innerText = "0";
+    document.getElementById(`btnAdicionar${id}`).classList.add("hidden");
+    
+    // 🔥 Direciona para o carrinho após adicionar
+    abrirTelaCarrinho(); 
   }
 }
 
@@ -973,9 +1021,17 @@ function atualizarCarrinho(){
 
   document.getElementById("carrinhoResumo").style.display = "block";
 }
-document.getElementById("carrinhoResumo").addEventListener("click", abrirTelaCarrinho);
+
+// Event listener para abrir o carrinho ao clicar no resumo mini
+document.getElementById("carrinhoResumo").addEventListener("click", function(e) {
+    // Impede que o clique no botão "Editar" ou "Finalizar" dispare a abertura do carrinho
+    if (e.target.id !== "btnEditarMini" && e.target.id !== "btnFinalizarCarrinho") {
+        abrirTelaCarrinho();
+    }
+});
+
 document.getElementById("btnEditarMini").addEventListener("click", function(e){
-  e.stopPropagation();
+  e.stopPropagation(); // Impede que o evento se propague para o pai
   abrirTelaCarrinho();
 });
 
@@ -1065,7 +1121,7 @@ function abrirTelaCarrinho(){
   document.getElementById("telaCardapio").classList.add("hidden");
   document.getElementById("telaCarrinho").classList.remove("hidden");
 
-salvarTelaAtual("telaCarrinho");
+  salvarTelaAtual("telaCarrinho");
 
 }
 function removerItemCarrinho(index){
@@ -1096,10 +1152,10 @@ document.getElementById("enderecoConfirmacao").innerText =
   cliente.endereco || endereco || "Endereço não encontrado";
   // Preenche dados já existentes
   document.getElementById("drawerNome").value = cliente.nome || "";
-document.getElementById("drawerCpf").value = cliente.cpf || "";
-document.getElementById("drawerTelefone").value = cliente.telefone || "";
-document.getElementById("drawerNumero").value = cliente.numero || "";
-document.getElementById("drawerComplemento").value = cliente.complemento || "";
+  document.getElementById("drawerCpf").value = cliente.cpf || "";
+  document.getElementById("drawerTelefone").value = cliente.telefone || "";
+  document.getElementById("drawerNumero").value = cliente.numero || "";
+  document.getElementById("drawerComplemento").value = cliente.complemento || "";
 
   // Mostra drawer
   drawer.style.bottom = "0";
@@ -1136,7 +1192,7 @@ document.getElementById("btnConfirmarDrawer").addEventListener("click", function
   document.getElementById("telaCarrinho").classList.add("hidden");
   document.getElementById("telaPagamento").classList.remove("hidden");
 
-salvarTelaAtual("telaPagamento");
+  salvarTelaAtual("telaPagamento");
 
   mostrarResumo();
 });
@@ -1147,8 +1203,7 @@ function fecharTelaCarrinho(){
 
   // 🔥 Volta para o Menu principal
   document.getElementById("telaMenu").classList.remove("hidden");
-
-salvarTelaAtual("telaMenu");
+  salvarTelaAtual("telaMenu"); // Salva o estado
 
   // 🔥 Se tiver item no carrinho → mostra mini carrinho
   if(carrinho.length > 0){
@@ -1161,7 +1216,7 @@ salvarTelaAtual("telaMenu");
 
 document.getElementById("btnFinalizarCarrinho").addEventListener("click", function(e){
 
-  e.stopPropagation();
+  e.stopPropagation(); // Impede que o evento se propague para o pai
 
   // 🔥 Esconde mini carrinho
   document.getElementById("carrinhoResumo").style.display = "none";
@@ -1184,10 +1239,9 @@ function mostrarResumo(){
 
   carrinho.forEach(item => {
     const valorItem = item.valorUnitario * item.quantidade;
-total += valorItem;
+    total += valorItem;
     const p = document.createElement("p");
-    p.innerText = `${item.produto} x${item.quantidade} - R$${valorItem.toFixed(2)}
-Acompanhamentos: ${item.acompanhamentos.join(", ")}`;
+    p.innerText = `${item.produto} x${item.quantidade} - R$${valorItem.toFixed(2)}\nAcompanhamentos: ${item.acompanhamentos.join(", ")}`;
     resumoDiv.appendChild(p);
   });
 
@@ -1205,8 +1259,8 @@ Acompanhamentos: ${item.acompanhamentos.join(", ")}`;
     ? cliente.complemento 
     : "S/N";
 
-const info = document.createElement("p");
-info.innerText = `
+  const info = document.createElement("p");
+  info.innerText = `
 Pedido Nº: ${numeroPedidoGlobal}
 Data: ${data}
 Hora: ${hora}
@@ -1222,8 +1276,8 @@ Total: R$ ${total.toFixed(2)}
 `;
   resumoDiv.appendChild(info);
 
-document.getElementById("carrinhoResumo").style.display = "none";
-// 🔥 AQUI CHAMA O PIX REAL
+  document.getElementById("carrinhoResumo").style.display = "none";
+  // 🔥 AQUI CHAMA O PIX REAL
   gerarPixReal(total);
 }
 
@@ -1270,7 +1324,7 @@ document.getElementById("btnVoltar").addEventListener("click", function(){
   document.getElementById("telaPagamento").classList.add("hidden");
   document.getElementById("telaCardapio").classList.remove("hidden");
 
-salvarTelaAtual("telaCardapio");
+  salvarTelaAtual("telaCardapio"); // Salva o estado
 
   document.getElementById("carrinhoResumo").style.display = "block";
 });
@@ -1293,52 +1347,52 @@ document.getElementById("btnCopiar").addEventListener("click", function(){
 // CONFIRMAR PAGAMENTO
 document.getElementById("btnPago").addEventListener("click", async function(){
 
-const dataHora = PedidoAPI.gerarDataHora();
+  const dataHora = PedidoAPI.gerarDataHora();
 
-const pedidoCompleto = {
-  numero: numeroPedidoGlobal,
-  data: dataHora.data,
-  hora: dataHora.hora,
-  cliente: cliente,
-  itens: carrinho,
-  total: total,
-  status: "Novo"
-};
+  const pedidoCompleto = {
+    numero: numeroPedidoGlobal,
+    data: dataHora.data,
+    hora: dataHora.hora,
+    cliente: cliente,
+    itens: carrinho,
+    total: total,
+    status: "Novo"
+  };
 
-// 🔥 SALVAR NO FIREBASE
-if(typeof salvarPedidoFirebase === "function"){
-  await salvarPedidoFirebase(pedidoCompleto);
-} else {
-  alert("Erro ao salvar pedido.");
-  return;
-}
+  // 🔥 SALVAR NO FIREBASE
+  if(typeof salvarPedidoFirebase === "function"){
+    await salvarPedidoFirebase(pedidoCompleto);
+  } else {
+    alert("Erro ao salvar pedido.");
+    return;
+  }
 
-// 🔥 MENSAGEM
-alert(
-  "Pedido Confirmado!\n\n" +
-  "Número do Pedido: " + numeroPedidoGlobal + "\n\n" +
-  "Agora é só aguardar 30 a 40 minutos.\n\n" +
-  "Obrigado pela preferência!"
-);
+  // 🔥 MENSAGEM
+  alert(
+    "Pedido Confirmado!\n\n" +
+    "Número do Pedido: " + numeroPedidoGlobal + "\n\n" +
+    "Agora é só aguardar 30 a 40 minutos.\n\n" +
+    "Obrigado pela preferência!"
+  );
 
-// 🔥 LIMPA CARRINHO
-carrinho = [];
-atualizarCarrinho();
+  // 🔥 LIMPA CARRINHO
+  carrinho = [];
+  atualizarCarrinho();
 
-// 🔥 REMOVE TELA SALVA
-localStorage.removeItem("telaAtual");
+  // 🔥 REMOVE TELA SALVA
+  localStorage.removeItem("telaAtual");
 
-// 🔥 ESCONDE TODAS AS TELAS
-document.getElementById("telaPagamento").classList.add("hidden");
-document.getElementById("telaCarrinho").classList.add("hidden");
-document.getElementById("telaCardapio").classList.add("hidden");
-document.getElementById("telaMenu").classList.add("hidden");
+  // 🔥 ESCONDE TODAS AS TELAS
+  document.getElementById("telaPagamento").classList.add("hidden");
+  document.getElementById("telaCarrinho").classList.add("hidden");
+  document.getElementById("telaCardapio").classList.add("hidden");
+  document.getElementById("telaMenu").classList.add("hidden");
 
-// 🔥 VOLTA PARA TELA INICIAL
-document.getElementById("telaCep").classList.remove("hidden");
+  // 🔥 VOLTA PARA TELA INICIAL
+  document.getElementById("telaCep").classList.remove("hidden");
 
-// 🔥 RESETA CAMPOS
-resetarTelaInicial();
+  // 🔥 RESETA CAMPOS
+  resetarTelaInicial();
 });
 // BOTÃO EDITAR ENDEREÇO
 document.getElementById("btnEditarEndereco").addEventListener("click", function(){
