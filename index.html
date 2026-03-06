@@ -1570,25 +1570,21 @@ window.addEventListener("load", function(){
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCa3MG-BB-sPuIzacB9Bws2a5a3gWqRYMc",
-  authDomain: "tela-nova.firebaseapp.com",
-  projectId: "tela-nova",
-  storageBucket: "tela-nova.firebasestorage.app",
-  messagingSenderId: "64625503593",
-  appId: "1:64625503593:web:212caffc877e6e4435e1f8",
-  measurementId: "G-H3JRG9X37Y"
+  apiKey: "AIzaSyBHL35bUGz9yrP5W5JSe2aiKoWS97CnOyw",
+  authDomain: "acai-mania-bab4b.firebaseapp.com",
+  projectId: "acai-mania-bab4b",
+  storageBucket: "acai-mania-bab4b.firebasestorage.app",
+  messagingSenderId: "624824759538",
+  appId: "1:624824759538:web:689b2e73bf6d8b0781cc6b"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
 window.salvarPedidoFirebase = async function(pedido){
   try{
