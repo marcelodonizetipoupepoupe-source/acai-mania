@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Açaí Delivery Mobile</title>  
 <style>
-body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; color:#fff;}</style>
-</style>
-<style>
 body, html {margin:0; padding:0; font-family:Arial,sans-serif; background:#000; color:#fff;}
 .overlay {
   height:100vh;
@@ -869,6 +866,7 @@ div.id = "produto"+p.id;
 </label>
       `;
       accDiv.appendChild(aDiv);
+
     });
 
   });
@@ -1113,7 +1111,7 @@ function alterarQtdCarrinho(index, delta){
   atualizarCarrinho();
   abrirTelaCarrinho();
 }
-document.getElementById("btnFinalizarEditado").addEventListener("click", ()=> {
+document.getElementById("btnFinalizarEditado").addEventListener("click", () => {
 
   const drawer = document.getElementById("drawerFinalizacao");
 
